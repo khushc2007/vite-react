@@ -1,352 +1,230 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 /* ================= TYPES ================= */
 
-type Page = "live" | "history" | "reports" | "research";
-
-type BackendResponse = {
-  reusable: "YES" | "NO";
-  tank: string;
-  filtrationMethod: string;
-  explanation: string;
-};
-
-type HistoryRecord = {
-  timestamp: string;
+type AvgData = {
   ph: number;
   turbidity: number;
   tds: number;
-  reusable: "YES" | "NO";
-  tank: string;
-  filtrationMethod: string;
 };
 
-/* ================= ROOT APP ================= */
+type Decision = {
+  reusable: string;
+  tank: string;
+  filtration: string;
+  explanation: string;
+};
+
+type HistoryItem = {
+  time: string;
+  avg: AvgData;
+  decision: Decision;
+};
+
+/* ================= CONFIG ================= */
+
+// 🔴 PUT YOUR RENDER BACKEND URL HERE
+const API_URL = "https://YOUR-BACKEND.onrender.com/analyze-water";
+
+/* ================= APP ================= */
 
 export default function App() {
-  const [page, setPage] = useState<Page>("live");
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [page, setPage] = useState<"report" | "home" | "history">("report");
 
   return (
     <div style={styles.app}>
-      <Header onMenu={() => setMenuOpen(!menuOpen)} />
+      <aside style={styles.sidebar}>
+        <h2 style={styles.logo}>Water IQ</h2>
+        <Nav label="Report" onClick={() => setPage("report")} />
+        <Nav label="Home" onClick={() => setPage("home")} />
+        <Nav label="History" onClick={() => setPage("history")} />
+      </aside>
 
-      <div style={styles.body}>
-        <Sidebar
-          active={page}
-          open={menuOpen}
-          onSelect={(p) => {
-            setPage(p);
-            setMenuOpen(false);
-          }}
-        />
-
-        <main style={styles.main}>
-          {page === "live" && <LiveAnalysis />}
-          {page === "history" && <History />}
-          {page === "reports" && <Reports />}
-          {page === "research" && <Research />}
-        </main>
-      </div>
+      <main style={styles.main}>
+        {page === "report" && <Report />}
+        {page === "home" && <Home />}
+        {page === "history" && <History />}
+      </main>
     </div>
   );
 }
 
-/* ================= HEADER ================= */
+/* ================= NAV ================= */
 
-function Header({ onMenu }: { onMenu: () => void }) {
+function Nav({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <header style={styles.header}>
-      <button style={styles.menuBtn} onClick={onMenu}>☰</button>
-      <h1 style={styles.headerTitle}>Smart Water Monitoring System</h1>
-    </header>
-  );
-}
-
-/* ================= SIDEBAR ================= */
-
-function Sidebar({
-  active,
-  open,
-  onSelect
-}: {
-  active: Page;
-  open: boolean;
-  onSelect: (p: Page) => void;
-}) {
-  return (
-    <aside style={{ ...styles.sidebar, ...(open ? styles.sidebarOpen : {}) }}>
-      <NavItem label="Live Analysis" active={active === "live"} onClick={() => onSelect("live")} />
-      <NavItem label="History" active={active === "history"} onClick={() => onSelect("history")} />
-      <NavItem label="Reports" active={active === "reports"} onClick={() => onSelect("reports")} />
-      <NavItem label="Research" active={active === "research"} onClick={() => onSelect("research")} />
-    </aside>
-  );
-}
-
-function NavItem({ label, active, onClick }: any) {
-  return (
-    <div
-      onClick={onClick}
-      style={{ ...styles.navItem, ...(active ? styles.navItemActive : {}) }}
-    >
+    <div style={styles.navItem} onClick={onClick}>
       {label}
     </div>
   );
 }
 
-/* ================= LIVE ANALYSIS ================= */
+/* ================= REPORT PAGE ================= */
+/* Collects data every 5s for 5 minutes */
 
-function LiveAnalysis() {
-  const [ph, setPh] = useState("");
-  const [turbidity, setTurbidity] = useState("");
-  const [tds, setTds] = useState("");
-  const [result, setResult] = useState<BackendResponse | null>(null);
-  const [error, setError] = useState("");
+function Report() {
+  const [avg, setAvg] = useState<AvgData | null>(null);
 
-  async function analyze() {
-    setError("");
-    setResult(null);
+  useEffect(() => {
+    let samples: AvgData[] = [];
 
-    try {
-      const res = await fetch(
-        "https://water-quality-backend-qxd3.onrender.com/analyze-water",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ph: Number(ph),
-            turbidity: Number(turbidity),
-            tds: Number(tds)
-          })
-        }
-      );
-
-      if (!res.ok) throw new Error();
-      const data: BackendResponse = await res.json();
-      setResult(data);
-
-      saveHistory({
-        timestamp: new Date().toLocaleString(),
-        ph: Number(ph),
-        turbidity: Number(turbidity),
-        tds: Number(tds),
-        reusable: data.reusable,
-        tank: data.tank,
-        filtrationMethod: data.filtrationMethod
+    const interval = setInterval(() => {
+      // 🔁 Replace with Arduino data later
+      samples.push({
+        ph: 6.5 + Math.random() * 2,
+        turbidity: 10 + Math.random() * 30,
+        tds: 500 + Math.random() * 800
       });
-    } catch {
-      setError("Unable to connect to backend service.");
-    }
-  }
+
+      if (samples.length === 60) {
+        const sum = samples.reduce(
+          (a, b) => ({
+            ph: a.ph + b.ph,
+            turbidity: a.turbidity + b.turbidity,
+            tds: a.tds + b.tds
+          }),
+          { ph: 0, turbidity: 0, tds: 0 }
+        );
+
+        const avgData = {
+          ph: +(sum.ph / 60).toFixed(2),
+          turbidity: +(sum.turbidity / 60).toFixed(1),
+          tds: Math.round(sum.tds / 60)
+        };
+
+        localStorage.setItem("latestAvg", JSON.stringify(avgData));
+        setAvg(avgData);
+        clearInterval(interval);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <section>
-      <h2 style={styles.sectionTitle}>Live Water Quality Analysis</h2>
-
-      <Card>
-        <Input label="pH (0–14)" value={ph} set={setPh} />
-        <Input label="Turbidity (NTU)" value={turbidity} set={setTurbidity} />
-        <Input label="TDS (ppm)" value={tds} set={setTds} />
-        <button style={styles.primaryBtn} onClick={analyze}>Analyze Sample</button>
-        {error && <p style={styles.error}>{error}</p>}
-      </Card>
-
-      {result && (
-        <Card>
-          <p><b>Reusable:</b> {result.reusable}</p>
-          <p><b>Tank Allocation:</b> {result.tank}</p>
-          <p><b>Filtration Method:</b> {result.filtrationMethod}</p>
-          <p style={styles.explanation}>{result.explanation}</p>
-        </Card>
+    <>
+      <h1>5-Minute Water Report</h1>
+      {!avg ? (
+        <p>Collecting sensor data…</p>
+      ) : (
+        <div style={styles.cards}>
+          <Card title="Avg pH" value={avg.ph} />
+          <Card title="Avg Turbidity (NTU)" value={avg.turbidity} />
+          <Card title="Avg TDS (ppm)" value={avg.tds} />
+        </div>
       )}
-    </section>
+    </>
   );
 }
 
-/* ================= HISTORY ================= */
+/* ================= HOME PAGE ================= */
+/* Calls backend for decision */
+
+function Home() {
+  const [decision, setDecision] = useState<Decision | null>(null);
+
+  useEffect(() => {
+    const avg = JSON.parse(localStorage.getItem("latestAvg") || "null");
+    if (!avg) return;
+
+    fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(avg)
+    })
+      .then(res => res.json())
+      .then(data => {
+        const record: HistoryItem = {
+          time: new Date().toLocaleString(),
+          avg,
+          decision: data
+        };
+
+        const history = JSON.parse(
+          localStorage.getItem("history") || "[]"
+        );
+        history.push(record);
+        localStorage.setItem("history", JSON.stringify(history));
+
+        setDecision(data);
+      });
+  }, []);
+
+  if (!decision) return <p>No report data available.</p>;
+
+  return (
+    <>
+      <h1>Decision Summary</h1>
+      <p><b>Reusable:</b> {decision.reusable}</p>
+      <p><b>Tank:</b> {decision.tank}</p>
+      <p><b>Filtration:</b> {decision.filtration}</p>
+      <p><b>Explanation:</b> {decision.explanation}</p>
+    </>
+  );
+}
+
+/* ================= HISTORY PAGE ================= */
 
 function History() {
-  const data = loadHistory();
+  const history: HistoryItem[] =
+    JSON.parse(localStorage.getItem("history") || "[]");
+
+  if (history.length === 0) return <p>No history yet.</p>;
 
   return (
-    <section>
-      <h2 style={styles.sectionTitle}>Analysis History</h2>
-      {data.length === 0 && <p>No records available.</p>}
-
-      {data.map((d, i) => (
-        <Card key={i}>
-          <p><b>{d.timestamp}</b></p>
-          <p>pH: {d.ph} | Turbidity: {d.turbidity} | TDS: {d.tds}</p>
-          <p>{d.reusable} → {d.tank}</p>
-          <p>Filtration: {d.filtrationMethod}</p>
-        </Card>
+    <>
+      <h1>History</h1>
+      {history.map((h, i) => (
+        <div key={i} style={styles.historyCard}>
+          <p><b>Time:</b> {h.time}</p>
+          <p>pH: {h.avg.ph}, Turbidity: {h.avg.turbidity}, TDS: {h.avg.tds}</p>
+          <p>Reusable: {h.decision.reusable}</p>
+          <p>Filtration: {h.decision.filtration}</p>
+        </div>
       ))}
-    </section>
+    </>
   );
 }
 
-/* ================= REPORTS ================= */
+/* ================= UI ================= */
 
-function Reports() {
-  const data = loadHistory();
-  const reusable = data.filter(d => d.reusable === "YES").length;
-
+function Card({ title, value }: { title: string; value: number }) {
   return (
-    <section>
-      <h2 style={styles.sectionTitle}>System Reports</h2>
-      <Card>
-        <p>Total Samples: {data.length}</p>
-        <p>Reusable Water: {reusable}</p>
-        <p>Non-Reusable Water: {data.length - reusable}</p>
-        <p>This report is generated from real operational data.</p>
-      </Card>
-    </section>
-  );
-}
-
-/* ================= RESEARCH ================= */
-
-function Research() {
-  const papers = [
-    ["WHO Water Reuse Guidelines", "World Health Organization, 2017"],
-    ["Greywater Treatment Technologies", "Water Research Journal, 2020"],
-    ["Turbidity & TDS Threshold Analysis", "Environmental Review, 2019"]
-  ];
-
-  return (
-    <section>
-      <h2 style={styles.sectionTitle}>Research & References</h2>
-      {papers.map((p, i) => (
-        <Card key={i}>
-          <h3>{p[0]}</h3>
-          <p>{p[1]}</p>
-        </Card>
-      ))}
-    </section>
-  );
-}
-
-/* ================= UI HELPERS ================= */
-
-function Card({ children }: any) {
-  return <div style={styles.card}>{children}</div>;
-}
-
-function Input({ label, value, set }: any) {
-  return (
-    <div style={styles.inputGroup}>
-      <label>{label}</label>
-      <input style={styles.input} value={value} onChange={e => set(e.target.value)} />
+    <div style={styles.card}>
+      <h3>{title}</h3>
+      <p>{value}</p>
     </div>
   );
-}
-
-/* ================= STORAGE ================= */
-
-function loadHistory(): HistoryRecord[] {
-  return JSON.parse(localStorage.getItem("history") || "[]");
-}
-
-function saveHistory(entry: HistoryRecord) {
-  const h = loadHistory();
-  h.push(entry);
-  localStorage.setItem("history", JSON.stringify(h));
 }
 
 /* ================= STYLES ================= */
 
 const styles: any = {
-  app: {
-    background: "#f1f5f9",
-    minHeight: "100vh",
-    color: "#020617",
-    fontFamily: "system-ui"
-  },
-
-  header: {
-    display: "flex",
-    alignItems: "center",
-    padding: "12px 16px",
-    background: "#020617",
-    color: "#ffffff"
-  },
-  headerTitle: { marginLeft: 12, fontSize: 18 },
-  menuBtn: {
-    fontSize: 22,
-    background: "none",
-    border: "none",
-    color: "#ffffff",
-    cursor: "pointer"
-  },
-
-  body: { display: "flex" },
-
+  app: { display: "flex", minHeight: "100vh", fontFamily: "system-ui" },
   sidebar: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    height: "100vh",
-    width: 240,
-    background: "#020617",
-    color: "#e5e7eb",
-    padding: 16,
-    transform: "translateX(-100%)",
-    transition: "transform 0.3s ease",
-    zIndex: 1000
+    width: 220,
+    background: "#0f172a",
+    color: "#fff",
+    padding: 20
   },
-  sidebarOpen: { transform: "translateX(0)" },
-
+  logo: { marginBottom: 30 },
   navItem: {
-    padding: "12px",
-    borderRadius: 6,
+    padding: 12,
     cursor: "pointer",
-    marginBottom: 6
+    borderBottom: "1px solid #334155"
   },
-  navItemActive: {
-    background: "#2563eb",
-    color: "#ffffff"
-  },
-
-  main: {
-    flex: 1,
-    padding: 20,
-    marginLeft: 0,
-    marginTop: 0
-  },
-
-  sectionTitle: {
-    marginBottom: 12,
-    fontSize: 20
-  },
-
+  main: { flex: 1, padding: 30, background: "#f8fafc" },
+  cards: { display: "flex", gap: 20 },
   card: {
-    background: "#ffffff",
-    padding: 16,
-    borderRadius: 10,
-    marginBottom: 16,
-    boxShadow: "0 6px 20px rgba(0,0,0,0.08)"
-  },
-
-  inputGroup: { marginBottom: 10 },
-  input: {
-    width: "100%",
-    padding: 10,
-    borderRadius: 6,
-    border: "1px solid #cbd5e1",
-    fontSize: 16
-  },
-
-  primaryBtn: {
-    marginTop: 10,
-    padding: "12px 16px",
-    background: "#2563eb",
-    color: "#ffffff",
-    border: "none",
+    background: "#fff",
+    padding: 20,
     borderRadius: 8,
-    fontSize: 16
+    boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
   },
-
-  explanation: { marginTop: 8, color: "#334155" },
-  error: { color: "#dc2626", marginTop: 8 }
+  historyCard: {
+    background: "#fff",
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 6
+  }
 };
