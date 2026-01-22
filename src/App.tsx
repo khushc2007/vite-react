@@ -1,17 +1,19 @@
 import { useState } from "react";
 
-/* =====================================================
-   DATA MODELS
-===================================================== */
+/* =========================
+   TYPES
+========================= */
 
-type WaterAnalysisResponse = {
+type Page = "live" | "history" | "reports" | "research";
+
+type BackendResponse = {
   reusable: "YES" | "NO";
   tank: string;
   filtrationMethod: string;
   explanation: string;
 };
 
-type StoredAnalysis = {
+type HistoryRecord = {
   timestamp: string;
   ph: number;
   turbidity: number;
@@ -21,66 +23,125 @@ type StoredAnalysis = {
   filtrationMethod: string;
 };
 
-/* =====================================================
-   APPLICATION ROOT
-===================================================== */
+/* =========================
+   ROOT APP
+========================= */
 
 export default function App() {
-  const [activePage, setActivePage] = useState<
-    "live" | "history" | "reports" | "research"
-  >("live");
+  const [page, setPage] = useState<Page>("live");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div style={styles.application}>
-      <Sidebar onNavigate={setActivePage} />
+    <div style={styles.app}>
+      <Header onMenu={() => setMenuOpen(!menuOpen)} />
 
-      <main style={styles.mainContent}>
-        {activePage === "live" && <LiveAnalysis />}
-        {activePage === "history" && <History />}
-        {activePage === "reports" && <Reports />}
-        {activePage === "research" && <ResearchLibrary />}
-      </main>
+      <div style={styles.body}>
+        <Sidebar
+          active={page}
+          open={menuOpen}
+          onSelect={(p) => {
+            setPage(p);
+            setMenuOpen(false);
+          }}
+        />
+
+        <main style={styles.main}>
+          {page === "live" && <LiveAnalysis />}
+          {page === "history" && <History />}
+          {page === "reports" && <Reports />}
+          {page === "research" && <Research />}
+        </main>
+      </div>
     </div>
   );
 }
 
-/* =====================================================
-   LIVE ANALYSIS PAGE
-===================================================== */
+/* =========================
+   HEADER (MOBILE + DESKTOP)
+========================= */
+
+function Header({ onMenu }: { onMenu: () => void }) {
+  return (
+    <header style={styles.header}>
+      <button style={styles.menuBtn} onClick={onMenu}>☰</button>
+      <h1 style={styles.headerTitle}>Smart Water Monitoring System</h1>
+    </header>
+  );
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+function Sidebar({
+  active,
+  open,
+  onSelect
+}: {
+  active: Page;
+  open: boolean;
+  onSelect: (p: Page) => void;
+}) {
+  return (
+    <aside
+      style={{
+        ...styles.sidebar,
+        ...(open ? styles.sidebarOpen : {})
+      }}
+    >
+      <NavItem label="Live Analysis" active={active === "live"} onClick={() => onSelect("live")} />
+      <NavItem label="History" active={active === "history"} onClick={() => onSelect("history")} />
+      <NavItem label="Reports" active={active === "reports"} onClick={() => onSelect("reports")} />
+      <NavItem label="Research" active={active === "research"} onClick={() => onSelect("research")} />
+    </aside>
+  );
+}
+
+function NavItem({ label, active, onClick }: any) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        ...styles.navItem,
+        background: active ? "#2563eb" : "transparent"
+      }}
+    >
+      {label}
+    </div>
+  );
+}
+
+/* =========================
+   LIVE ANALYSIS
+========================= */
 
 function LiveAnalysis() {
   const [ph, setPh] = useState("");
   const [turbidity, setTurbidity] = useState("");
   const [tds, setTds] = useState("");
-  const [result, setResult] = useState<WaterAnalysisResponse | null>(null);
+  const [result, setResult] = useState<BackendResponse | null>(null);
   const [error, setError] = useState("");
 
-  async function handleAnalysis() {
+  async function analyze() {
     setError("");
     setResult(null);
 
     try {
-      const response = await fetch(
-        "https://water-quality-backend-qxd3.onrender.com/analyze-water",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ph: Number(ph),
-            turbidity: Number(turbidity),
-            tds: Number(tds)
-          })
-        }
-      );
+      const res = await fetch("https://water-quality-backend-qxd3.onrender.com/analyze-water", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ph: Number(ph),
+          turbidity: Number(turbidity),
+          tds: Number(tds)
+        })
+      });
 
-      if (!response.ok) {
-        throw new Error("Backend response error");
-      }
-
-      const data: WaterAnalysisResponse = await response.json();
+      if (!res.ok) throw new Error();
+      const data: BackendResponse = await res.json();
       setResult(data);
 
-      persistHistory({
+      saveHistory({
         timestamp: new Date().toLocaleString(),
         ph: Number(ph),
         turbidity: Number(turbidity),
@@ -90,265 +151,194 @@ function LiveAnalysis() {
         filtrationMethod: data.filtrationMethod
       });
     } catch {
-      setError("Unable to communicate with backend service.");
+      setError("Unable to connect to backend service.");
     }
   }
 
   return (
     <section>
-      <h1>Live Water Quality Analysis</h1>
+      <SectionTitle title="Live Water Quality Analysis" />
 
-      <InputField label="pH (0–14)" value={ph} onChange={setPh} />
-      <InputField label="Turbidity (NTU)" value={turbidity} onChange={setTurbidity} />
-      <InputField label="TDS (ppm)" value={tds} onChange={setTds} />
-
-      <button style={styles.primaryButton} onClick={handleAnalysis}>
-        Analyze Water Sample
-      </button>
-
-      {error && <p style={styles.errorText}>{error}</p>}
+      <Card>
+        <Input label="pH (0–14)" value={ph} set={setPh} />
+        <Input label="Turbidity (NTU)" value={turbidity} set={setTurbidity} />
+        <Input label="TDS (ppm)" value={tds} set={setTds} />
+        <button style={styles.primaryBtn} onClick={analyze}>Analyze Sample</button>
+        {error && <p style={styles.error}>{error}</p>}
+      </Card>
 
       {result && (
-        <div style={styles.card}>
-          <ResultRow label="Reusability" value={result.reusable} />
-          <ResultRow label="Water Routing" value={result.tank} />
-          <ResultRow label="Filtration Method" value={result.filtrationMethod} />
-          <p style={styles.explanationText}>{result.explanation}</p>
-        </div>
+        <Card>
+          <Result label="Reusable" value={result.reusable} />
+          <Result label="Tank Allocation" value={result.tank} />
+          <Result label="Filtration Method" value={result.filtrationMethod} />
+          <p style={styles.explanation}>{result.explanation}</p>
+        </Card>
       )}
     </section>
   );
 }
 
-/* =====================================================
-   HISTORY PAGE
-===================================================== */
+/* =========================
+   HISTORY
+========================= */
 
 function History() {
-  const history = loadHistory();
+  const data = loadHistory();
 
   return (
     <section>
-      <h1>Historical Water Analysis Records</h1>
-
-      {history.length === 0 && <p>No recorded analyses available.</p>}
-
-      {history.map((entry, index) => (
-        <div key={index} style={styles.card}>
-          <p><strong>Timestamp:</strong> {entry.timestamp}</p>
-          <p>pH: {entry.ph} | Turbidity: {entry.turbidity} NTU | TDS: {entry.tds} ppm</p>
-          <p>
-            Decision: {entry.reusable} → {entry.tank}
-          </p>
-          <p>Filtration: {entry.filtrationMethod}</p>
-        </div>
+      <SectionTitle title="Analysis History" />
+      {data.length === 0 && <p>No records available.</p>}
+      {data.map((d, i) => (
+        <Card key={i}>
+          <p><b>{d.timestamp}</b></p>
+          <p>pH: {d.ph} | Turbidity: {d.turbidity} | TDS: {d.tds}</p>
+          <p>{d.reusable} → {d.tank}</p>
+          <p>Filtration: {d.filtrationMethod}</p>
+        </Card>
       ))}
     </section>
   );
 }
 
-/* =====================================================
-   REPORTS PAGE
-===================================================== */
+/* =========================
+   REPORTS
+========================= */
 
 function Reports() {
-  const history = loadHistory();
-
-  const reusableCount = history.filter(h => h.reusable === "YES").length;
-  const average = (key: "ph" | "turbidity" | "tds") =>
-    history.reduce((sum, h) => sum + h[key], 0) / (history.length || 1);
+  const data = loadHistory();
+  const reusable = data.filter(d => d.reusable === "YES").length;
 
   return (
     <section>
-      <h1>System Performance Report</h1>
-
-      <div style={styles.card}>
-        <p>Total Samples Analyzed: {history.length}</p>
-        <p>Reusable Samples: {reusableCount}</p>
-        <p>Non-Reusable Samples: {history.length - reusableCount}</p>
-        <p>Average pH: {average("ph").toFixed(2)}</p>
-        <p>Average Turbidity: {average("turbidity").toFixed(2)} NTU</p>
-        <p>Average TDS: {average("tds").toFixed(2)} ppm</p>
-      </div>
-
-      <p style={styles.explanationText}>
-        This report summarizes the system’s effectiveness in classifying greywater
-        and recommending appropriate filtration strategies based on accepted
-        environmental thresholds.
-      </p>
+      <SectionTitle title="System Reports" />
+      <Card>
+        <p>Total Samples: {data.length}</p>
+        <p>Reusable Water: {reusable}</p>
+        <p>Non-Reusable Water: {data.length - reusable}</p>
+        <p>
+          This report summarizes system performance based on real operational data.
+        </p>
+      </Card>
     </section>
   );
 }
 
-/* =====================================================
-   RESEARCH LIBRARY
-===================================================== */
+/* =========================
+   RESEARCH
+========================= */
 
-function ResearchLibrary() {
+function Research() {
   const papers = [
-    {
-      title: "WHO Guidelines for the Safe Use of Wastewater",
-      description:
-        "Defines international standards for water reuse in agriculture and domestic applications.",
-      citation: "World Health Organization, 2017"
-    },
-    {
-      title: "Greywater Treatment and Reuse Technologies",
-      description:
-        "A comparative study of filtration, membrane, and adsorption-based methods.",
-      citation: "Journal of Water Research, 2020"
-    },
-    {
-      title: "Turbidity and TDS as Water Quality Indicators",
-      description:
-        "Analyzes the correlation between suspended solids and reuse safety.",
-      citation: "Environmental Monitoring Review, 2019"
-    }
+    ["WHO Water Reuse Guidelines", "World Health Organization, 2017"],
+    ["Greywater Treatment Technologies", "Water Research Journal, 2020"],
+    ["TDS & Turbidity Threshold Analysis", "Environmental Review, 2019"]
   ];
 
   return (
     <section>
-      <h1>Research & Reference Library</h1>
-
-      {papers.map((paper, index) => (
-        <div key={index} style={styles.card}>
-          <h3>{paper.title}</h3>
-          <p>{paper.description}</p>
-          <p><em>{paper.citation}</em></p>
-        </div>
+      <SectionTitle title="Research & References" />
+      {papers.map((p, i) => (
+        <Card key={i}>
+          <h3>{p[0]}</h3>
+          <p>{p[1]}</p>
+        </Card>
       ))}
     </section>
   );
 }
 
-/* =====================================================
-   REUSABLE COMPONENTS
-===================================================== */
+/* =========================
+   REUSABLE UI
+========================= */
 
-function Sidebar({
-  onNavigate
-}: {
-  onNavigate: (page: "live" | "history" | "reports" | "research") => void;
-}) {
-  return (
-    <aside style={styles.sidebar}>
-      <h2>WaterSys</h2>
-      <NavButton label="Live Analysis" onClick={() => onNavigate("live")} />
-      <NavButton label="History" onClick={() => onNavigate("history")} />
-      <NavButton label="Reports" onClick={() => onNavigate("reports")} />
-      <NavButton label="Research" onClick={() => onNavigate("research")} />
-    </aside>
-  );
+function SectionTitle({ title }: { title: string }) {
+  return <h2 style={styles.sectionTitle}>{title}</h2>;
 }
 
-function NavButton({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <div style={styles.navButton} onClick={onClick}>
-      {label}
-    </div>
-  );
+function Card({ children }: any) {
+  return <div style={styles.card}>{children}</div>;
 }
 
-function InputField({
-  label,
-  value,
-  onChange
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
+function Input({ label, value, set }: any) {
   return (
-    <div>
+    <div style={styles.inputGroup}>
       <label>{label}</label>
-      <input
-        style={styles.input}
-        type="number"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-      />
+      <input style={styles.input} value={value} onChange={e => set(e.target.value)} />
     </div>
   );
 }
 
-function ResultRow({ label, value }: { label: string; value: string }) {
-  return (
-    <p>
-      <strong>{label}:</strong> {value}
-    </p>
-  );
+function Result({ label, value }: any) {
+  return <p><b>{label}:</b> {value}</p>;
 }
 
-/* =====================================================
-   LOCAL STORAGE HELPERS
-===================================================== */
+/* =========================
+   STORAGE
+========================= */
 
-function loadHistory(): StoredAnalysis[] {
+function loadHistory(): HistoryRecord[] {
   return JSON.parse(localStorage.getItem("history") || "[]");
 }
 
-function persistHistory(entry: StoredAnalysis) {
-  const history = loadHistory();
-  history.push(entry);
-  localStorage.setItem("history", JSON.stringify(history));
+function saveHistory(entry: HistoryRecord) {
+  const h = loadHistory();
+  h.push(entry);
+  localStorage.setItem("history", JSON.stringify(h));
 }
 
-/* =====================================================
-   STYLES
-===================================================== */
+/* =========================
+   STYLES (RESPONSIVE)
+========================= */
 
-const styles: Record<string, any> = {
-  application: {
+const styles: any = {
+  app: { fontFamily: "system-ui", background: "#f8fafc", minHeight: "100vh" },
+  header: {
     display: "flex",
-    minHeight: "100vh",
-    fontFamily: "system-ui, sans-serif",
-    background: "#f8fafc"
-  },
-  sidebar: {
-    width: 240,
-    background: "#0f172a",
-    color: "#ffffff",
-    padding: 20
-  },
-  navButton: {
-    padding: 10,
-    marginTop: 8,
-    background: "#1e293b",
-    cursor: "pointer",
-    borderRadius: 4
-  },
-  mainContent: {
-    flex: 1,
-    padding: 30
-  },
-  primaryButton: {
-    marginTop: 12,
+    alignItems: "center",
     padding: "10px 16px",
+    background: "#0f172a",
+    color: "#fff"
+  },
+  headerTitle: { marginLeft: 12, fontSize: 18 },
+  menuBtn: { fontSize: 20, background: "none", border: "none", color: "#fff" },
+
+  body: { display: "flex", flexWrap: "wrap" },
+  sidebar: {
+    width: 220,
+    background: "#111827",
+    color: "#fff",
+    padding: 12
+  },
+  sidebarOpen: { display: "block" },
+
+  navItem: { padding: 10, cursor: "pointer", borderRadius: 6 },
+
+  main: { flex: 1, padding: 20, minWidth: 0 },
+
+  sectionTitle: { marginBottom: 12 },
+
+  card: {
+    background: "#fff",
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+  },
+
+  inputGroup: { marginBottom: 10 },
+  input: { width: "100%", padding: 8 },
+
+  primaryBtn: {
+    marginTop: 10,
+    padding: "10px 14px",
     background: "#2563eb",
     color: "#fff",
     border: "none",
-    borderRadius: 6,
-    cursor: "pointer"
+    borderRadius: 6
   },
-  input: {
-    display: "block",
-    marginBottom: 10,
-    padding: 8,
-    width: "100%"
-  },
-  card: {
-    background: "#ffffff",
-    padding: 16,
-    marginTop: 16,
-    borderRadius: 6,
-    boxShadow: "0 4px 10px rgba(0,0,0,0.05)"
-  },
-  errorText: {
-    color: "red",
-    marginTop: 10
-  },
-  explanationText: {
-    marginTop: 10,
-    color: "#334155"
-  }
+
+  explanation: { marginTop: 8, color: "#334155" },
+  error: { color: "red", marginTop: 8 }
 };
