@@ -1,183 +1,182 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+
+/* ================= CONFIG ================= */
+const API_URL = "https://water-quality-backend-6-8hwp.onrender.com/analyze-water";
 
 /* ================= TYPES ================= */
-
-type AvgData = {
-  ph: number;
-  turbidity: number;
-  tds: number;
-};
-
+type Reading = { ph: number; turbidity: number; tds: number };
 type Decision = {
   reusable: string;
   tank: string;
   filtration: string;
   explanation: string;
 };
-
 type HistoryItem = {
   time: string;
-  avg: AvgData;
+  input: Reading;
   decision: Decision;
 };
-
-/* ================= CONFIG ================= */
-
-// 🔴 PUT YOUR RENDER BACKEND URL HERE
-const API_URL = "https://water-quality-backend-6-8hwp.onrender.com/analyze-water";
 
 /* ================= APP ================= */
 
 export default function App() {
-  const [page, setPage] = useState<"report" | "home" | "history">("report");
+  const [tab, setTab] = useState<"analyze" | "report" | "history">("analyze");
 
   return (
     <div style={styles.app}>
-      <aside style={styles.sidebar}>
-        <h2 style={styles.logo}>Water IQ</h2>
-        <Nav label="Report" onClick={() => setPage("report")} />
-        <Nav label="Home" onClick={() => setPage("home")} />
-        <Nav label="History" onClick={() => setPage("history")} />
-      </aside>
+      <header style={styles.header}>
+        <h1>Water Quality Decision System</h1>
+      </header>
+
+      <nav style={styles.nav}>
+        <Tab label="Analyze" active={tab === "analyze"} onClick={() => setTab("analyze")} />
+        <Tab label="Report" active={tab === "report"} onClick={() => setTab("report")} />
+        <Tab label="History" active={tab === "history"} onClick={() => setTab("history")} />
+      </nav>
 
       <main style={styles.main}>
-        {page === "report" && <Report />}
-        {page === "home" && <Home />}
-        {page === "history" && <History />}
+        {tab === "analyze" && <Analyze />}
+        {tab === "report" && <Report />}
+        {tab === "history" && <History />}
       </main>
     </div>
   );
 }
 
-/* ================= NAV ================= */
+/* ================= ANALYZE ================= */
 
-function Nav({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <div style={styles.navItem} onClick={onClick}>
-      {label}
-    </div>
-  );
-}
+function Analyze() {
+  const [input, setInput] = useState({ ph: "", turbidity: "", tds: "" });
+  const [result, setResult] = useState<Decision | null>(null);
+  const [loading, setLoading] = useState(false);
 
-/* ================= REPORT PAGE ================= */
-/* Collects data every 5s for 5 minutes */
+  const submit = async () => {
+    setLoading(true);
+    setResult(null);
 
-function Report() {
-  const [avg, setAvg] = useState<AvgData | null>(null);
+    const payload = {
+      ph: Number(input.ph),
+      turbidity: Number(input.turbidity),
+      tds: Number(input.tds)
+    };
 
-  useEffect(() => {
-    let samples: AvgData[] = [];
-
-    const interval = setInterval(() => {
-      // 🔁 Replace with Arduino data later
-      samples.push({
-        ph: 6.5 + Math.random() * 2,
-        turbidity: 10 + Math.random() * 30,
-        tds: 500 + Math.random() * 800
-      });
-
-      if (samples.length === 60) {
-        const sum = samples.reduce(
-          (a, b) => ({
-            ph: a.ph + b.ph,
-            turbidity: a.turbidity + b.turbidity,
-            tds: a.tds + b.tds
-          }),
-          { ph: 0, turbidity: 0, tds: 0 }
-        );
-
-        const avgData = {
-          ph: +(sum.ph / 60).toFixed(2),
-          turbidity: +(sum.turbidity / 60).toFixed(1),
-          tds: Math.round(sum.tds / 60)
-        };
-
-        localStorage.setItem("latestAvg", JSON.stringify(avgData));
-        setAvg(avgData);
-        clearInterval(interval);
-      }
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <>
-      <h1>5-Minute Water Report</h1>
-      {!avg ? (
-        <p>Collecting sensor data…</p>
-      ) : (
-        <div style={styles.cards}>
-          <Card title="Avg pH" value={avg.ph} />
-          <Card title="Avg Turbidity (NTU)" value={avg.turbidity} />
-          <Card title="Avg TDS (ppm)" value={avg.tds} />
-        </div>
-      )}
-    </>
-  );
-}
-
-/* ================= HOME PAGE ================= */
-/* Calls backend for decision */
-
-function Home() {
-  const [decision, setDecision] = useState<Decision | null>(null);
-
-  useEffect(() => {
-    const avg = JSON.parse(localStorage.getItem("latestAvg") || "null");
-    if (!avg) return;
-
-    fetch(API_URL, {
+    const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(avg)
-    })
-      .then(res => res.json())
-      .then(data => {
-        const record: HistoryItem = {
-          time: new Date().toLocaleString(),
-          avg,
-          decision: data
-        };
+      body: JSON.stringify(payload)
+    });
 
-        const history = JSON.parse(
-          localStorage.getItem("history") || "[]"
-        );
-        history.push(record);
-        localStorage.setItem("history", JSON.stringify(history));
+    const data = await res.json();
+    setResult(data);
 
-        setDecision(data);
-      });
-  }, []);
+    const history: HistoryItem[] = JSON.parse(localStorage.getItem("history") || "[]");
+    history.push({
+      time: new Date().toLocaleString(),
+      input: payload,
+      decision: data
+    });
+    localStorage.setItem("history", JSON.stringify(history));
 
-  if (!decision) return <p>No report data available.</p>;
+    setLoading(false);
+  };
 
   return (
     <>
-      <h1>Decision Summary</h1>
-      <p><b>Reusable:</b> {decision.reusable}</p>
-      <p><b>Tank:</b> {decision.tank}</p>
-      <p><b>Filtration:</b> {decision.filtration}</p>
-      <p><b>Explanation:</b> {decision.explanation}</p>
+      <h2>Manual Analysis</h2>
+      <Form input={input} setInput={setInput} onSubmit={submit} />
+
+      {loading && <p>Analyzing…</p>}
+      {result && <DecisionCard decision={result} />}
     </>
   );
 }
 
-/* ================= HISTORY PAGE ================= */
+/* ================= REPORT ================= */
+
+function Report() {
+  const [entries, setEntries] = useState<Reading[]>([]);
+  const [input, setInput] = useState({ ph: "", turbidity: "", tds: "" });
+  const [avgDecision, setAvgDecision] = useState<Decision | null>(null);
+
+  const addEntry = () => {
+    setEntries([
+      ...entries,
+      {
+        ph: Number(input.ph),
+        turbidity: Number(input.turbidity),
+        tds: Number(input.tds)
+      }
+    ]);
+    setInput({ ph: "", turbidity: "", tds: "" });
+  };
+
+  const analyzeAverage = async () => {
+    const avg = entries.reduce(
+      (a, b) => ({
+        ph: a.ph + b.ph,
+        turbidity: a.turbidity + b.turbidity,
+        tds: a.tds + b.tds
+      }),
+      { ph: 0, turbidity: 0, tds: 0 }
+    );
+
+    const payload = {
+      ph: +(avg.ph / entries.length).toFixed(2),
+      turbidity: +(avg.turbidity / entries.length).toFixed(1),
+      tds: Math.round(avg.tds / entries.length)
+    };
+
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    setAvgDecision(data);
+
+    const history: HistoryItem[] = JSON.parse(localStorage.getItem("history") || "[]");
+    history.push({
+      time: new Date().toLocaleString(),
+      input: payload,
+      decision: data
+    });
+    localStorage.setItem("history", JSON.stringify(history));
+  };
+
+  return (
+    <>
+      <h2>Report (Averaged Inputs)</h2>
+      <Form input={input} setInput={setInput} onSubmit={addEntry} buttonLabel="Add Reading" />
+
+      {entries.length > 0 && (
+        <>
+          <p>{entries.length} readings added</p>
+          <button style={styles.primaryBtn} onClick={analyzeAverage}>
+            Analyze Average
+          </button>
+        </>
+      )}
+
+      {avgDecision && <DecisionCard decision={avgDecision} />}
+    </>
+  );
+}
+
+/* ================= HISTORY ================= */
 
 function History() {
-  const history: HistoryItem[] =
-    JSON.parse(localStorage.getItem("history") || "[]");
+  const history: HistoryItem[] = JSON.parse(localStorage.getItem("history") || "[]");
 
   if (history.length === 0) return <p>No history yet.</p>;
 
   return (
     <>
-      <h1>History</h1>
+      <h2>History</h2>
       {history.map((h, i) => (
         <div key={i} style={styles.historyCard}>
-          <p><b>Time:</b> {h.time}</p>
-          <p>pH: {h.avg.ph}, Turbidity: {h.avg.turbidity}, TDS: {h.avg.tds}</p>
+          <p><b>{h.time}</b></p>
+          <p>pH: {h.input.ph}, Turbidity: {h.input.turbidity}, TDS: {h.input.tds}</p>
           <p>Reusable: {h.decision.reusable}</p>
           <p>Filtration: {h.decision.filtration}</p>
         </div>
@@ -186,44 +185,78 @@ function History() {
   );
 }
 
-/* ================= UI ================= */
+/* ================= SHARED COMPONENTS ================= */
 
-function Card({ title, value }: { title: string; value: number }) {
+function Form({ input, setInput, onSubmit, buttonLabel = "Analyze" }: any) {
+  return (
+    <div style={styles.form}>
+      {["ph", "turbidity", "tds"].map(k => (
+        <input
+          key={k}
+          placeholder={k.toUpperCase()}
+          value={input[k]}
+          onChange={e => setInput({ ...input, [k]: e.target.value })}
+          type="number"
+        />
+      ))}
+      <button style={styles.primaryBtn} onClick={onSubmit}>
+        {buttonLabel}
+      </button>
+    </div>
+  );
+}
+
+function DecisionCard({ decision }: { decision: Decision }) {
   return (
     <div style={styles.card}>
-      <h3>{title}</h3>
-      <p>{value}</p>
+      <p><b>Reusable:</b> {decision.reusable}</p>
+      <p><b>Tank:</b> {decision.tank}</p>
+      <p><b>Filtration:</b> {decision.filtration}</p>
+      <p>{decision.explanation}</p>
     </div>
+  );
+}
+
+function Tab({ label, active, onClick }: any) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        ...styles.tab,
+        borderBottom: active ? "3px solid #2563eb" : "none"
+      }}
+    >
+      {label}
+    </button>
   );
 }
 
 /* ================= STYLES ================= */
 
 const styles: any = {
-  app: { display: "flex", minHeight: "100vh", fontFamily: "system-ui" },
-  sidebar: {
-    width: 220,
-    background: "#0f172a",
+  app: { fontFamily: "system-ui", maxWidth: 800, margin: "auto" },
+  header: { padding: 20, background: "#0f172a", color: "#fff" },
+  nav: { display: "flex", gap: 20, padding: 15 },
+  tab: { background: "none", border: "none", cursor: "pointer", fontSize: 16 },
+  main: { padding: 20 },
+  form: { display: "flex", gap: 10, marginBottom: 20 },
+  primaryBtn: {
+    padding: "8px 16px",
+    background: "#2563eb",
     color: "#fff",
-    padding: 20
+    border: "none",
+    borderRadius: 6,
+    cursor: "pointer"
   },
-  logo: { marginBottom: 30 },
-  navItem: {
-    padding: 12,
-    cursor: "pointer",
-    borderBottom: "1px solid #334155"
-  },
-  main: { flex: 1, padding: 30, background: "#f8fafc" },
-  cards: { display: "flex", gap: 20 },
   card: {
-    background: "#fff",
     padding: 20,
+    background: "#f8fafc",
     borderRadius: 8,
-    boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
+    marginTop: 20
   },
   historyCard: {
-    background: "#fff",
     padding: 15,
+    background: "#f1f5f9",
     marginBottom: 10,
     borderRadius: 6
   }
