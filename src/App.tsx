@@ -110,7 +110,7 @@ function LiveAnalysis() {
 
     try {
       const res = await fetch(
-        "https://YOUR_BACKEND_URL/analyze-water",
+        "https://water-quality-backend-qxd3.onrender.com/analyze-water",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
