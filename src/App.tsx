@@ -1,8 +1,6 @@
 import { useState } from "react";
 
-/* =========================
-   TYPES
-========================= */
+/* ================= TYPES ================= */
 
 type Page = "live" | "history" | "reports" | "research";
 
@@ -23,9 +21,7 @@ type HistoryRecord = {
   filtrationMethod: string;
 };
 
-/* =========================
-   ROOT APP
-========================= */
+/* ================= ROOT APP ================= */
 
 export default function App() {
   const [page, setPage] = useState<Page>("live");
@@ -56,9 +52,7 @@ export default function App() {
   );
 }
 
-/* =========================
-   HEADER (MOBILE + DESKTOP)
-========================= */
+/* ================= HEADER ================= */
 
 function Header({ onMenu }: { onMenu: () => void }) {
   return (
@@ -69,9 +63,7 @@ function Header({ onMenu }: { onMenu: () => void }) {
   );
 }
 
-/* =========================
-   SIDEBAR
-========================= */
+/* ================= SIDEBAR ================= */
 
 function Sidebar({
   active,
@@ -83,12 +75,7 @@ function Sidebar({
   onSelect: (p: Page) => void;
 }) {
   return (
-    <aside
-      style={{
-        ...styles.sidebar,
-        ...(open ? styles.sidebarOpen : {})
-      }}
-    >
+    <aside style={{ ...styles.sidebar, ...(open ? styles.sidebarOpen : {}) }}>
       <NavItem label="Live Analysis" active={active === "live"} onClick={() => onSelect("live")} />
       <NavItem label="History" active={active === "history"} onClick={() => onSelect("history")} />
       <NavItem label="Reports" active={active === "reports"} onClick={() => onSelect("reports")} />
@@ -101,19 +88,14 @@ function NavItem({ label, active, onClick }: any) {
   return (
     <div
       onClick={onClick}
-      style={{
-        ...styles.navItem,
-        background: active ? "#2563eb" : "transparent"
-      }}
+      style={{ ...styles.navItem, ...(active ? styles.navItemActive : {}) }}
     >
       {label}
     </div>
   );
 }
 
-/* =========================
-   LIVE ANALYSIS
-========================= */
+/* ================= LIVE ANALYSIS ================= */
 
 function LiveAnalysis() {
   const [ph, setPh] = useState("");
@@ -127,15 +109,18 @@ function LiveAnalysis() {
     setResult(null);
 
     try {
-      const res = await fetch("https://water-quality-backend-qxd3.onrender.com/analyze-water", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ph: Number(ph),
-          turbidity: Number(turbidity),
-          tds: Number(tds)
-        })
-      });
+      const res = await fetch(
+        "https://YOUR_BACKEND_URL/analyze-water",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ph: Number(ph),
+            turbidity: Number(turbidity),
+            tds: Number(tds)
+          })
+        }
+      );
 
       if (!res.ok) throw new Error();
       const data: BackendResponse = await res.json();
@@ -157,7 +142,7 @@ function LiveAnalysis() {
 
   return (
     <section>
-      <SectionTitle title="Live Water Quality Analysis" />
+      <h2 style={styles.sectionTitle}>Live Water Quality Analysis</h2>
 
       <Card>
         <Input label="pH (0–14)" value={ph} set={setPh} />
@@ -169,9 +154,9 @@ function LiveAnalysis() {
 
       {result && (
         <Card>
-          <Result label="Reusable" value={result.reusable} />
-          <Result label="Tank Allocation" value={result.tank} />
-          <Result label="Filtration Method" value={result.filtrationMethod} />
+          <p><b>Reusable:</b> {result.reusable}</p>
+          <p><b>Tank Allocation:</b> {result.tank}</p>
+          <p><b>Filtration Method:</b> {result.filtrationMethod}</p>
           <p style={styles.explanation}>{result.explanation}</p>
         </Card>
       )}
@@ -179,17 +164,16 @@ function LiveAnalysis() {
   );
 }
 
-/* =========================
-   HISTORY
-========================= */
+/* ================= HISTORY ================= */
 
 function History() {
   const data = loadHistory();
 
   return (
     <section>
-      <SectionTitle title="Analysis History" />
+      <h2 style={styles.sectionTitle}>Analysis History</h2>
       {data.length === 0 && <p>No records available.</p>}
+
       {data.map((d, i) => (
         <Card key={i}>
           <p><b>{d.timestamp}</b></p>
@@ -202,9 +186,7 @@ function History() {
   );
 }
 
-/* =========================
-   REPORTS
-========================= */
+/* ================= REPORTS ================= */
 
 function Reports() {
   const data = loadHistory();
@@ -212,33 +194,29 @@ function Reports() {
 
   return (
     <section>
-      <SectionTitle title="System Reports" />
+      <h2 style={styles.sectionTitle}>System Reports</h2>
       <Card>
         <p>Total Samples: {data.length}</p>
         <p>Reusable Water: {reusable}</p>
         <p>Non-Reusable Water: {data.length - reusable}</p>
-        <p>
-          This report summarizes system performance based on real operational data.
-        </p>
+        <p>This report is generated from real operational data.</p>
       </Card>
     </section>
   );
 }
 
-/* =========================
-   RESEARCH
-========================= */
+/* ================= RESEARCH ================= */
 
 function Research() {
   const papers = [
     ["WHO Water Reuse Guidelines", "World Health Organization, 2017"],
     ["Greywater Treatment Technologies", "Water Research Journal, 2020"],
-    ["TDS & Turbidity Threshold Analysis", "Environmental Review, 2019"]
+    ["Turbidity & TDS Threshold Analysis", "Environmental Review, 2019"]
   ];
 
   return (
     <section>
-      <SectionTitle title="Research & References" />
+      <h2 style={styles.sectionTitle}>Research & References</h2>
       {papers.map((p, i) => (
         <Card key={i}>
           <h3>{p[0]}</h3>
@@ -249,13 +227,7 @@ function Research() {
   );
 }
 
-/* =========================
-   REUSABLE UI
-========================= */
-
-function SectionTitle({ title }: { title: string }) {
-  return <h2 style={styles.sectionTitle}>{title}</h2>;
-}
+/* ================= UI HELPERS ================= */
 
 function Card({ children }: any) {
   return <div style={styles.card}>{children}</div>;
@@ -270,13 +242,7 @@ function Input({ label, value, set }: any) {
   );
 }
 
-function Result({ label, value }: any) {
-  return <p><b>{label}:</b> {value}</p>;
-}
-
-/* =========================
-   STORAGE
-========================= */
+/* ================= STORAGE ================= */
 
 function loadHistory(): HistoryRecord[] {
   return JSON.parse(localStorage.getItem("history") || "[]");
@@ -288,57 +254,99 @@ function saveHistory(entry: HistoryRecord) {
   localStorage.setItem("history", JSON.stringify(h));
 }
 
-/* =========================
-   STYLES (RESPONSIVE)
-========================= */
+/* ================= STYLES ================= */
 
 const styles: any = {
-  app: { fontFamily: "system-ui", background: "#f8fafc", minHeight: "100vh" },
+  app: {
+    background: "#f1f5f9",
+    minHeight: "100vh",
+    color: "#020617",
+    fontFamily: "system-ui"
+  },
+
   header: {
     display: "flex",
     alignItems: "center",
-    padding: "10px 16px",
-    background: "#0f172a",
-    color: "#fff"
+    padding: "12px 16px",
+    background: "#020617",
+    color: "#ffffff"
   },
   headerTitle: { marginLeft: 12, fontSize: 18 },
-  menuBtn: { fontSize: 20, background: "none", border: "none", color: "#fff" },
-
-  body: { display: "flex", flexWrap: "wrap" },
-  sidebar: {
-    width: 220,
-    background: "#111827",
-    color: "#fff",
-    padding: 12
+  menuBtn: {
+    fontSize: 22,
+    background: "none",
+    border: "none",
+    color: "#ffffff",
+    cursor: "pointer"
   },
-  sidebarOpen: { display: "block" },
 
-  navItem: { padding: 10, cursor: "pointer", borderRadius: 6 },
+  body: { display: "flex" },
 
-  main: { flex: 1, padding: 20, minWidth: 0 },
+  sidebar: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    height: "100vh",
+    width: 240,
+    background: "#020617",
+    color: "#e5e7eb",
+    padding: 16,
+    transform: "translateX(-100%)",
+    transition: "transform 0.3s ease",
+    zIndex: 1000
+  },
+  sidebarOpen: { transform: "translateX(0)" },
 
-  sectionTitle: { marginBottom: 12 },
+  navItem: {
+    padding: "12px",
+    borderRadius: 6,
+    cursor: "pointer",
+    marginBottom: 6
+  },
+  navItemActive: {
+    background: "#2563eb",
+    color: "#ffffff"
+  },
+
+  main: {
+    flex: 1,
+    padding: 20,
+    marginLeft: 0,
+    marginTop: 0
+  },
+
+  sectionTitle: {
+    marginBottom: 12,
+    fontSize: 20
+  },
 
   card: {
-    background: "#fff",
+    background: "#ffffff",
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 10,
     marginBottom: 16,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+    boxShadow: "0 6px 20px rgba(0,0,0,0.08)"
   },
 
   inputGroup: { marginBottom: 10 },
-  input: { width: "100%", padding: 8 },
+  input: {
+    width: "100%",
+    padding: 10,
+    borderRadius: 6,
+    border: "1px solid #cbd5e1",
+    fontSize: 16
+  },
 
   primaryBtn: {
     marginTop: 10,
-    padding: "10px 14px",
+    padding: "12px 16px",
     background: "#2563eb",
-    color: "#fff",
+    color: "#ffffff",
     border: "none",
-    borderRadius: 6
+    borderRadius: 8,
+    fontSize: 16
   },
 
   explanation: { marginTop: 8, color: "#334155" },
-  error: { color: "red", marginTop: 8 }
+  error: { color: "#dc2626", marginTop: 8 }
 };
