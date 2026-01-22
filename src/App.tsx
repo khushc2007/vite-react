@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 /* ================= CONFIG ================= */
-const API_URL = "https://YOUR-BACKEND.onrender.com/analyze-water";
+const API_URL = "https://water-quality-backend-6-8hwp.onrender.com/analyze-water";
 
 /* ================= TYPES ================= */
 type Reading = { ph: number; turbidity: number; tds: number };
