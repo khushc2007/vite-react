@@ -24,7 +24,7 @@ type HistoryItem = {
 /* ================= CONFIG ================= */
 
 // 🔴 PUT YOUR RENDER BACKEND URL HERE
-const API_URL = "https://YOUR-BACKEND.onrender.com/analyze-water";
+const API_URL = "https://water-quality-backend-6-8hwp.onrender.com/analyze-water";
 
 /* ================= APP ================= */
 
