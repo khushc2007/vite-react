@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./app.css";
 
 type ApiResponse = {
   status: string;
