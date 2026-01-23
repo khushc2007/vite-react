@@ -1,51 +1,71 @@
-import React from "react";
+import { useNavigate } from "react-router-dom";
 
-type Props = {
-  navigate: (page: string) => void;
-};
+export default function Applications() {
+  const navigate = useNavigate();
 
-export default function ApplicationsHome({ navigate }: Props) {
+  const cardStyle = {
+    background: "#20344a",
+    borderRadius: "14px",
+    padding: "24px",
+    cursor: "pointer",
+    border: "1px solid #2f4a63",
+    transition: "transform 0.2s, box-shadow 0.2s",
+  };
+
+  const cards = [
+    {
+      title: "Aquaculture",
+      icon: "🐟",
+      desc: "Water quality monitoring for fish farms, tanks, and aquaculture ecosystems.",
+      path: "/applications/aquaculture",
+    },
+    {
+      title: "Agriculture",
+      icon: "🌱",
+      desc: "Irrigation and soil-water quality monitoring for crops and farming systems.",
+      path: "/applications/agriculture",
+    },
+    {
+      title: "Industrial",
+      icon: "🏭",
+      desc: "Industrial wastewater monitoring, reuse analysis, and compliance checks.",
+      path: "/applications/industrial",
+    },
+  ];
+
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Real-World Applications</h1>
+    <div>
+      <h1>Real-World Applications</h1>
+      <p style={{ opacity: 0.7, marginBottom: "24px" }}>
+        Explore how water quality monitoring applies across different industries.
+      </p>
 
-      <div style={styles.grid}>
-        <div style={styles.card} onClick={() => navigate("aquaculture")}>
-          Aquaculture
-        </div>
-
-        <div style={styles.card} onClick={() => navigate("agriculture")}>
-          Agriculture
-        </div>
-
-        <div style={styles.card} onClick={() => navigate("industrial")}>
-          Industrial Use
-        </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: "20px",
+        }}
+      >
+        {cards.map((c) => (
+          <div
+            key={c.title}
+            style={cardStyle}
+            onClick={() => navigate(c.path)}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.boxShadow =
+                "0 8px 24px rgba(0,0,0,0.35)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.boxShadow = "none")
+            }
+          >
+            <div style={{ fontSize: "36px" }}>{c.icon}</div>
+            <h3 style={{ marginTop: "12px" }}>{c.title}</h3>
+            <p style={{ opacity: 0.75, fontSize: "14px" }}>{c.desc}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    padding: 32,
-    color: "#e6f1ff",
-  },
-  title: {
-    fontSize: 28,
-    marginBottom: 24,
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: 20,
-  },
-  card: {
-    background: "#143a52",
-    padding: 24,
-    borderRadius: 14,
-    cursor: "pointer",
-    fontSize: 18,
-    textAlign: "center",
-  },
-};
