@@ -3,66 +3,71 @@ import { useNavigate } from "react-router-dom";
 export default function Applications() {
   const navigate = useNavigate();
 
-  const cardStyle = {
-    background: "#20344a",
-    borderRadius: "14px",
-    padding: "24px",
+  const cardStyle: React.CSSProperties = {
+    background: "#1e293b",
+    borderRadius: "16px",
+    padding: "26px",
     cursor: "pointer",
-    border: "1px solid #2f4a63",
-    transition: "transform 0.2s, box-shadow 0.2s",
+    border: "1px solid #334155",
+    transition: "transform 0.2s ease, box-shadow 0.2s ease",
   };
 
   const cards = [
     {
       title: "Aquaculture",
       icon: "🐟",
-      desc: "Water quality monitoring for fish farms, tanks, and aquaculture ecosystems.",
+      desc: "Scientific monitoring of water quality in fish farms, ponds, and hatcheries.",
       path: "/applications/aquaculture",
     },
     {
       title: "Agriculture",
       icon: "🌱",
-      desc: "Irrigation and soil-water quality monitoring for crops and farming systems.",
+      desc: "Water quality assessment for irrigation, soil protection, and crop productivity.",
       path: "/applications/agriculture",
     },
     {
       title: "Industrial",
       icon: "🏭",
-      desc: "Industrial wastewater monitoring, reuse analysis, and compliance checks.",
+      desc: "Monitoring and treatment of industrial wastewater for reuse and compliance.",
       path: "/applications/industrial",
     },
   ];
 
   return (
     <div>
-      <h1>Real-World Applications</h1>
-      <p style={{ opacity: 0.7, marginBottom: "24px" }}>
-        Explore how water quality monitoring applies across different industries.
+      <h1 style={{ marginBottom: "10px" }}>Real-World Applications</h1>
+      <p style={{ opacity: 0.75, marginBottom: "28px" }}>
+        Explore how intelligent water-quality monitoring systems are applied
+        across different domains.
       </p>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-          gap: "20px",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: "24px",
         }}
       >
-        {cards.map((c) => (
+        {cards.map((card) => (
           <div
-            key={c.title}
+            key={card.title}
             style={cardStyle}
-            onClick={() => navigate(c.path)}
+            onClick={() => navigate(card.path)}
             onMouseEnter={(e) =>
               (e.currentTarget.style.boxShadow =
-                "0 8px 24px rgba(0,0,0,0.35)")
+                "0 12px 30px rgba(0,0,0,0.35)")
             }
             onMouseLeave={(e) =>
               (e.currentTarget.style.boxShadow = "none")
             }
           >
-            <div style={{ fontSize: "36px" }}>{c.icon}</div>
-            <h3 style={{ marginTop: "12px" }}>{c.title}</h3>
-            <p style={{ opacity: 0.75, fontSize: "14px" }}>{c.desc}</p>
+            <div style={{ fontSize: "42px", marginBottom: "10px" }}>
+              {card.icon}
+            </div>
+            <h2>{card.title}</h2>
+            <p style={{ fontSize: "14px", opacity: 0.8 }}>
+              {card.desc}
+            </p>
           </div>
         ))}
       </div>
