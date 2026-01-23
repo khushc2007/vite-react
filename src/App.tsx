@@ -1,24 +1,40 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./MainLayout";
 
 import Home from "./pages/Home";
-import LiveDashboard from "./pages/LiveDashboard";
-import Applications from "./pages/applications/Applications";
+import Applications from "./pages/Applications/Applications";
+import Aquaculture from "./pages/Applications/Aquaculture";
+import Agriculture from "./pages/Applications/Agriculture";
+import Industrial from "./pages/Applications/Industrial";
+
+// placeholders if not ready
+const LiveDashboard = () => <div>Live Dashboard</div>;
+const History = () => <div>History</div>;
+const Settings = () => <div>Settings</div>;
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<MainLayout />}>
-          {/* Default landing */}
           <Route path="/" element={<Home />} />
+          <Route path="/live-dashboard" element={<LiveDashboard />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/settings" element={<Settings />} />
 
-          {/* Main pages */}
-          <Route path="/dashboard" element={<LiveDashboard />} />
           <Route path="/applications" element={<Applications />} />
-
-          {/* Safety fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="/applications/aquaculture"
+            element={<Aquaculture />}
+          />
+          <Route
+            path="/applications/agriculture"
+            element={<Agriculture />}
+          />
+          <Route
+            path="/applications/industrial"
+            element={<Industrial />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>
