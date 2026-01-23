@@ -4,71 +4,147 @@ import {
   getLiveData,
   getAverages,
   saveIteration,
-  resetLiveData,
   MAX_ROWS,
-  INTERVAL_SECONDS,
 } from "../services/dataService";
 
-import DatasetTable from "../components/DatasetTable";
 import MetricCard from "../components/MetricCard";
-import IterationModal from "../components/IterationModal";
+import DatasetTable from "../components/DatasetTable";
+import ChartModal from "../components/ChartModal";
+
+type PredictionResult = {
+  reusable: "YES" | "NO";
+  tank: "A" | "B";
+  filtrationBracket: string;
+  filtrationMethod: string;
+};
 
 export default function LiveDashboard() {
   const [rows, setRows] = useState<any[]>([]);
   const [avg, setAvg] = useState<any>(null);
-  const [showModal, setShowModal] = useState(false);
+  const [activeMetric, setActiveMetric] = useState<string | null>(null);
+  const [prediction, setPrediction] = useState<PredictionResult | null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    const id = setInterval(() => {
       pushLiveData();
       setRows(getLiveData());
       setAvg(getAverages());
-    }, INTERVAL_SECONDS * 1000);
+    }, 4000);
 
-    return () => clearInterval(timer);
+    return () => clearInterval(id);
   }, []);
 
-  return (
-    <>
-      <h2 style={{ color: "white" }}>Live Dashboard</h2>
+  const runPredictionModel = () => {
+    if (!avg) return;
 
+    // ---- Simulated backend response ----
+    const reusable =
+      avg.ph >= 6.5 && avg.ph <= 8.5 && avg.tds < 1000 ? "YES" : "NO";
+
+    const result: PredictionResult = reusable === "YES"
+      ? {
+          reusable: "YES",
+          tank: "A",
+          filtrationBracket: "F1",
+          filtrationMethod: "Basic Sand + Carbon",
+        }
+      : {
+          reusable: "NO",
+          tank: "B",
+          filtrationBracket: "F3",
+          filtrationMethod: "Coagulation + Sand Filtration",
+        };
+
+    setPrediction(result);
+
+    saveIteration({
+      timestamp: new Date().toLocaleString(),
+      averages: avg,
+      result,
+    });
+  };
+
+  return (
+    <div>
+      <h1>Live Dashboard</h1>
+
+      {/* ===== METRIC CARDS ===== */}
       <div style={{ display: "flex", gap: 16 }}>
         {avg && (
           <>
-            <MetricCard title="pH" rows={rows} valueKey="ph" avg={avg.ph} />
-            <MetricCard title="TDS" rows={rows} valueKey="tds" avg={avg.tds} />
+            <MetricCard
+              title="pH"
+              valueKey="ph"
+              rows={rows}
+              avg={avg.ph}
+              onClick={() => setActiveMetric("ph")}
+            />
+            <MetricCard
+              title="TDS"
+              valueKey="tds"
+              rows={rows}
+              avg={avg.tds}
+              onClick={() => setActiveMetric("tds")}
+            />
             <MetricCard
               title="Turbidity"
-              rows={rows}
               valueKey="turbidity"
+              rows={rows}
               avg={avg.turbidity}
+              onClick={() => setActiveMetric("turbidity")}
             />
           </>
         )}
       </div>
 
+      {/* ===== DATA TABLE ===== */}
       <DatasetTable rows={rows} />
 
+      {/* ===== RUN MODEL BUTTON ===== */}
       {rows.length === MAX_ROWS && (
         <button
-          style={{ marginTop: 20 }}
-          onClick={() => setShowModal(true)}
+          onClick={runPredictionModel}
+          style={{
+            marginTop: 20,
+            padding: "14px 22px",
+            fontSize: "16px",
+            borderRadius: "10px",
+            background: "linear-gradient(135deg, #22c55e, #16a34a)",
+            color: "#fff",
+            border: "none",
+            cursor: "pointer",
+          }}
         >
           Run Prediction Model
         </button>
       )}
 
-      {showModal && (
-        <IterationModal
-          onSave={(name: string) => {
-            saveIteration(name);
-            resetLiveData();
-            setRows([]);
-            setShowModal(false);
+      {/* ===== PREDICTION RESULT ===== */}
+      {prediction && (
+        <div
+          style={{
+            marginTop: 24,
+            padding: 20,
+            borderRadius: 12,
+            background: "#052e16",
           }}
-          onClose={() => setShowModal(false)}
+        >
+          <h3>Prediction Result</h3>
+          <p><b>Reusable:</b> {prediction.reusable}</p>
+          <p><b>Tank:</b> {prediction.tank}</p>
+          <p><b>Filtration Bracket:</b> {prediction.filtrationBracket}</p>
+          <p><b>Method:</b> {prediction.filtrationMethod}</p>
+        </div>
+      )}
+
+      {/* ===== CHART MODAL ===== */}
+      {activeMetric && (
+        <ChartModal
+          metric={activeMetric}
+          rows={rows}
+          onClose={() => setActiveMetric(null)}
         />
       )}
-    </>
+    </div>
   );
 }
