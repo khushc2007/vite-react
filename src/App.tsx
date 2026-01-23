@@ -7,6 +7,34 @@ import Settings from "./pages/Settings";
 import Applications from "./pages/Applications";
 import ChartModal from "./components/ChartModal";
 import SaveIterationModal from "./components/SaveIterationModal";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useState } from "react";
+import MainLayout from "./layouts/MainLayout";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import LiveDashboard from "./pages/LiveDashboard";
+import Applications from "./pages/applications/Applications";
+
+export default function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  if (!loggedIn) {
+    return <Login onLogin={() => setLoggedIn(true)} />;
+  }
+
+  return (
+    <BrowserRouter>
+      <MainLayout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/live" element={<LiveDashboard />} />
+          <Route path="/applications" element={<Applications />} />
+        </Routes>
+      </MainLayout>
+    </BrowserRouter>
+  );
+}
+
 
 export type Page =
   | "home"
