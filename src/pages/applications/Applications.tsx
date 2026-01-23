@@ -1,125 +1,51 @@
 import React from "react";
-// src/pages/applications/Applications.tsx
 
-export default function Applications() {
-  const card = {
-    padding: "30px",
-    borderRadius: "14px",
-    background: "rgba(255,255,255,0.08)",
-    cursor: "pointer",
-    textAlign: "center" as const,
-  };
+type Props = {
+  navigate: (page: string) => void;
+};
 
-  return (
-    <>
-      <h1>Real-World Applications</h1>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "20px",
-        }}
-      >
-        <div style={card}>Aquaculture</div>
-        <div style={card}>Agriculture</div>
-        <div style={card}>Industrial Water</div>
-        <div style={card}>Drinking Water</div>
-        <div style={card}>Wastewater</div>
-      </div>
-    </>
-  );
-}
-
-const applications = [
-  {
-    title: "Aquaculture & Fish Farming",
-    description:
-      "Continuous monitoring of pH, turbidity, and TDS to ensure optimal water conditions for fish health and growth. Alerts can prevent mass fish loss.",
-  },
-  {
-    title: "Agricultural Irrigation",
-    description:
-      "Determine whether water is reusable for irrigation based on quality parameters and recommend filtration when required.",
-  },
-  {
-    title: "Smart Water Reuse Systems",
-    description:
-      "Classify wastewater into reusable and non-reusable categories and guide treatment strategies for sustainable reuse.",
-  },
-  {
-    title: "Industrial Effluent Monitoring",
-    description:
-      "Monitor industrial discharge water quality to ensure compliance with environmental regulations before release or reuse.",
-  },
-  {
-    title: "Urban Water Supply Monitoring",
-    description:
-      "Track water quality trends in storage tanks and pipelines to detect contamination early.",
-  },
-];
-
-export default function Applications() {
+export default function ApplicationsHome({ navigate }: Props) {
   return (
     <div style={styles.container}>
-      <h1 style={styles.heading}>Real-World Applications</h1>
-      <p style={styles.subHeading}>
-        Practical use-cases of the Water Quality Monitoring & Prediction System
-      </p>
+      <h1 style={styles.title}>Real-World Applications</h1>
 
       <div style={styles.grid}>
-        {applications.map((app, index) => (
-          <div key={index} style={styles.card}>
-            <h3 style={styles.cardTitle}>{app.title}</h3>
-            <p style={styles.cardText}>{app.description}</p>
-          </div>
-        ))}
+        <div style={styles.card} onClick={() => navigate("aquaculture")}>
+          Aquaculture
+        </div>
+
+        <div style={styles.card} onClick={() => navigate("agriculture")}>
+          Agriculture
+        </div>
+
+        <div style={styles.card} onClick={() => navigate("industrial")}>
+          Industrial Use
+        </div>
       </div>
     </div>
   );
 }
 
-/* ===========================
-   Inline Styles (Safe & Simple)
-=========================== */
-
-const styles: { [key: string]: React.CSSProperties } = {
+const styles: Record<string, React.CSSProperties> = {
   container: {
-    padding: "30px",
-    color: "#EAEAEA",
-    background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
-    minHeight: "100vh",
+    padding: 32,
+    color: "#e6f1ff",
   },
-  heading: {
-    fontSize: "32px",
-    marginBottom: "10px",
-    fontWeight: 600,
-  },
-  subHeading: {
-    fontSize: "15px",
-    marginBottom: "30px",
-    color: "#B0BEC5",
+  title: {
+    fontSize: 28,
+    marginBottom: 24,
   },
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: "20px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: 20,
   },
   card: {
-    background: "rgba(255,255,255,0.06)",
-    borderRadius: "12px",
-    padding: "20px",
-    border: "1px solid rgba(255,255,255,0.12)",
-    backdropFilter: "blur(6px)",
+    background: "#143a52",
+    padding: 24,
+    borderRadius: 14,
+    cursor: "pointer",
+    fontSize: 18,
+    textAlign: "center",
   },
-  cardTitle: {
-    fontSize: "18px",
-    marginBottom: "8px",
-    color: "#90CAF9",
-  },
-  cardText: {
-    fontSize: "14px",
-    lineHeight: 1.6,
-    color: "#CFD8DC",
-  },
-}
+};
