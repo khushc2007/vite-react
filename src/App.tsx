@@ -1,221 +1,301 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
-/* =====================
-   MOCK SENSOR DATA
-===================== */
-const sensorData = {
-  current: { ph: 7.4, tds: 620, turbidity: 18 },
-  history: [
-    { time: "10:00", ph: 7.2, tds: 600, turbidity: 15 },
-    { time: "10:10", ph: 7.3, tds: 610, turbidity: 16 },
-    { time: "10:20", ph: 7.4, tds: 620, turbidity: 18 },
-    { time: "10:30", ph: 7.5, tds: 640, turbidity: 20 },
-  ],
+/* ---------------- FILTRATION MAP ---------------- */
+
+const FILTRATION_MAP = {
+  F1: {
+    label: "Reusable",
+    color: "#22c55e",
+    reason: "All parameters within safe limits.",
+  },
+  F2: {
+    label: "Non-Reusable (Low Treatment)",
+    color: "#38bdf8",
+    reason: "Minor deviation, light filtration required.",
+  },
+  F3: {
+    label: "Non-Reusable (Moderate Treatment)",
+    color: "#facc15",
+    reason: "High suspended solids or TDS.",
+  },
+  F4: {
+    label: "Non-Reusable (Heavy Treatment)",
+    color: "#fb923c",
+    reason: "Multiple parameters exceed limits.",
+  },
+  F5: {
+    label: "Hazardous",
+    color: "#ef4444",
+    reason: "Unsafe water, high contamination.",
+  },
 };
 
-/* =====================
-   PREDICTION LOGIC
-===================== */
-function runPrediction({ ph, tds, turbidity }) {
-  const reusable =
-    ph >= 6.5 && ph <= 8.5 && tds <= 1000 && turbidity <= 10;
+/* ---------------- HELPERS ---------------- */
 
-  let filtration = "F1 – Basic Filtration";
-  if (tds > 1500) filtration = "F5 – Reverse Osmosis";
-  else if (tds > 1000) filtration = "F4 – Carbon + UF";
-  else if (turbidity > 30) filtration = "F3 – Coagulation + Sand";
-  else if (turbidity > 10) filtration = "F2 – Sand + Carbon";
+const randomReading = () => ({
+  time: new Date().toLocaleTimeString(),
+  pH: +(6.8 + Math.random() * 0.6).toFixed(2),
+  tds: Math.floor(380 + Math.random() * 120),
+  turbidity: +(1.8 + Math.random() * 2.5).toFixed(2),
+  temp: +(25 + Math.random() * 2).toFixed(1),
+});
 
-  return {
-    reusable: reusable ? "Reusable" : "Not Reusable",
-    filtration,
-  };
-}
+const calculateAverage = (data, key) =>
+  +(data.reduce((a, b) => a + b[key], 0) / data.length).toFixed(2);
 
-/* =====================
-   MAIN APP
-===================== */
+const decideFiltration = (avg) => {
+  if (avg.turbidity < 2 && avg.tds < 400 && avg.pH >= 6.5 && avg.pH <= 7.5)
+    return "F1";
+  if (avg.turbidity < 3) return "F2";
+  if (avg.turbidity < 5) return "F3";
+  if (avg.turbidity < 8) return "F4";
+  return "F5";
+};
+
+/* ---------------- MAIN APP ---------------- */
+
 export default function App() {
-  const [page, setPage] = useState("home");
+  const [page, setPage] = useState("HOME");
+  const [data, setData] = useState([]);
+  const [history, setHistory] = useState(
+    JSON.parse(localStorage.getItem("history") || "[]")
+  );
+  const [chartKey, setChartKey] = useState(null);
+  const [iterationName, setIterationName] = useState("");
 
-  const prediction = runPrediction(sensorData.current);
+  /* Simulate live data */
+  useEffect(() => {
+    if (page !== "LIVE") return;
+    const id = setInterval(() => {
+      setData((d) => [...d.slice(-49), randomReading()]);
+    }, 2000);
+    return () => clearInterval(id);
+  }, [page]);
+
+  const averages =
+    data.length > 0
+      ? {
+          pH: calculateAverage(data, "pH"),
+          tds: calculateAverage(data, "tds"),
+          turbidity: calculateAverage(data, "turbidity"),
+          temp: calculateAverage(data, "temp"),
+        }
+      : null;
+
+  const filtration = averages ? decideFiltration(averages) : null;
+
+  const saveIteration = () => {
+    if (!iterationName || !averages) return;
+    const entry = {
+      name: iterationName,
+      time: new Date().toLocaleString(),
+      averages,
+      filtration,
+    };
+    const updated = [...history, entry];
+    setHistory(updated);
+    localStorage.setItem("history", JSON.stringify(updated));
+    setIterationName("");
+  };
+
+  /* ---------------- UI ---------------- */
 
   return (
     <div style={styles.app}>
-      {page === "home" && (
-        <>
-          <h1 style={styles.title}>Water Quality Monitoring System</h1>
-
-          <div style={styles.homeGrid}>
-            <HomeCard title="Live Dashboard" onClick={() => setPage("live")} />
-            <HomeCard title="History" onClick={() => setPage("history")} />
-            <HomeCard
-              title="Real-World Applications"
-              onClick={() => setPage("applications")}
-            />
-            <HomeCard title="Settings" onClick={() => setPage("settings")} />
-          </div>
-        </>
+      {page === "HOME" && (
+        <div style={styles.grid}>
+          {["LIVE", "HISTORY", "APPS", "SETTINGS"].map((p) => (
+            <div key={p} style={styles.tile} onClick={() => setPage(p)}>
+              {p}
+            </div>
+          ))}
+        </div>
       )}
 
-      {page === "live" && (
+      {page === "LIVE" && (
         <>
-          <BackButton onClick={() => setPage("home")} />
+          <button onClick={() => setPage("HOME")}>← Back</button>
 
-          <h2>Live Dashboard</h2>
-
-          {/* Cards */}
-          <div style={styles.cardRow}>
-            <StatCard title="pH" value={sensorData.current.ph} />
-            <StatCard title="TDS" value={sensorData.current.tds} />
-            <StatCard title="Turbidity" value={sensorData.current.turbidity} />
+          <div style={styles.cards}>
+            {["pH", "tds", "turbidity", "temp"].map((k) => (
+              <div
+                key={k}
+                style={styles.card}
+                onClick={() => setChartKey(k)}
+              >
+                <h3>{k.toUpperCase()}</h3>
+                <p>{data.at(-1)?.[k] ?? "--"}</p>
+                <small>Avg: {averages?.[k] ?? "--"}</small>
+              </div>
+            ))}
           </div>
 
-          {/* Table */}
-          <h3>Recent Readings</h3>
-          <div style={styles.tableWrapper}>
-            <table style={styles.table}>
+          <div style={styles.table}>
+            <table width="100%">
               <thead>
                 <tr>
+                  <th>#</th>
                   <th>Time</th>
                   <th>pH</th>
                   <th>TDS</th>
-                  <th>Turbidity</th>
+                  <th>Turb</th>
+                  <th>Temp</th>
                 </tr>
               </thead>
               <tbody>
-                {sensorData.history.map((r, i) => (
+                {data.map((r, i) => (
                   <tr key={i}>
+                    <td>{i + 1}</td>
                     <td>{r.time}</td>
-                    <td>{r.ph}</td>
+                    <td>{r.pH}</td>
                     <td>{r.tds}</td>
                     <td>{r.turbidity}</td>
+                    <td>{r.temp}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          {/* Prediction */}
-          <h3>Prediction Model Output</h3>
-          <div style={styles.predictionBox}>
-            <p><strong>Status:</strong> {prediction.reusable}</p>
-            <p><strong>Recommended Filtration:</strong> {prediction.filtration}</p>
+          {averages && (
+            <div style={styles.summary}>
+              <h3>Prediction</h3>
+              <p>
+                Filtration Class:{" "}
+                <span style={{ color: FILTRATION_MAP[filtration].color }}>
+                  {filtration}
+                </span>
+              </p>
+              <p>{FILTRATION_MAP[filtration].reason}</p>
+
+              <input
+                placeholder="Iteration name"
+                value={iterationName}
+                onChange={(e) => setIterationName(e.target.value)}
+              />
+              <button onClick={saveIteration}>Save Iteration</button>
+            </div>
+          )}
+        </>
+      )}
+
+      {page === "HISTORY" && (
+        <>
+          <button onClick={() => setPage("HOME")}>← Back</button>
+          {history.map((h, i) => (
+            <div key={i} style={styles.historyCard}>
+              <h4>{h.name}</h4>
+              <p>{h.time}</p>
+              <p>Filtration: {h.filtration}</p>
+              <button
+                onClick={() =>
+                  navigator.clipboard.writeText(JSON.stringify(h, null, 2))
+                }
+              >
+                Export
+              </button>
+            </div>
+          ))}
+        </>
+      )}
+
+      {chartKey && (
+        <div style={styles.modal} onClick={() => setChartKey(null)}>
+          <div style={styles.modalBox}>
+            <h3>{chartKey.toUpperCase()} vs Time</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={data}>
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  dataKey={chartKey}
+                  stroke="#38bdf8"
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-        </>
-      )}
-
-      {page === "history" && (
-        <>
-          <BackButton onClick={() => setPage("home")} />
-          <h2>History</h2>
-          <p>Saved prediction iterations will appear here.</p>
-        </>
-      )}
-
-      {page === "applications" && (
-        <>
-          <BackButton onClick={() => setPage("home")} />
-          <h2>Real-World Applications</h2>
-          <p>• Greywater reuse</p>
-          <p>• Agriculture irrigation</p>
-          <p>• Aquaculture monitoring</p>
-        </>
-      )}
-
-      {page === "settings" && (
-        <>
-          <BackButton onClick={() => setPage("home")} />
-          <h2>Settings</h2>
-          <p>Configuration options will appear here.</p>
-        </>
+        </div>
       )}
     </div>
   );
 }
 
-/* =====================
-   SMALL COMPONENTS
-===================== */
-function HomeCard({ title, onClick }) {
-  return (
-    <div style={styles.homeCard} onClick={onClick}>
-      <h3>{title}</h3>
-    </div>
-  );
-}
+/* ---------------- STYLES ---------------- */
 
-function StatCard({ title, value }) {
-  return (
-    <div style={styles.statCard}>
-      <h4>{title}</h4>
-      <p style={{ fontSize: "26px", color: "#38bdf8" }}>{value}</p>
-    </div>
-  );
-}
-
-function BackButton({ onClick }) {
-  return (
-    <button onClick={onClick} style={styles.backBtn}>
-      ← Back
-    </button>
-  );
-}
-
-/* =====================
-   STYLES
-===================== */
 const styles = {
   app: {
-    padding: "30px",
-    fontFamily: "Segoe UI, sans-serif",
-    background: "#0b0f14",
+    background: "#0e0e11",
     color: "#e5e7eb",
     minHeight: "100vh",
+    padding: 20,
+    fontFamily: "Inter, sans-serif",
   },
-  title: { marginBottom: "30px" },
-  homeGrid: {
+  grid: {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "30px",
+    gap: 20,
   },
-  homeCard: {
+  tile: {
     background: "#111827",
-    padding: "50px",
+    padding: 60,
     textAlign: "center",
-    borderRadius: "12px",
+    fontSize: 20,
     cursor: "pointer",
-    fontSize: "18px",
+    borderRadius: 12,
   },
-  cardRow: { display: "flex", gap: "20px", marginBottom: "20px" },
-  statCard: {
+  cards: {
+    display: "flex",
+    gap: 16,
+    marginTop: 20,
+  },
+  card: {
     flex: 1,
     background: "#111827",
-    padding: "20px",
-    borderRadius: "10px",
-    textAlign: "center",
-  },
-  tableWrapper: {
-    maxHeight: "200px",
-    overflowY: "auto",
-    marginBottom: "20px",
+    padding: 20,
+    borderRadius: 12,
+    cursor: "pointer",
   },
   table: {
-    width: "100%",
-    borderCollapse: "collapse",
-  },
-  predictionBox: {
+    marginTop: 20,
+    maxHeight: 200,
+    overflowY: "auto",
     background: "#020617",
-    padding: "20px",
-    borderRadius: "10px",
-    marginTop: "10px",
+    borderRadius: 8,
   },
-  backBtn: {
-    marginBottom: "20px",
-    background: "none",
-    border: "1px solid #38bdf8",
-    color: "#38bdf8",
-    padding: "6px 12px",
-    cursor: "pointer",
+  summary: {
+    marginTop: 20,
+    background: "#111827",
+    padding: 20,
+    borderRadius: 12,
+  },
+  historyCard: {
+    background: "#111827",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  modal: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.7)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    background: "#020617",
+    padding: 20,
+    borderRadius: 12,
+    width: "80%",
   },
 };
