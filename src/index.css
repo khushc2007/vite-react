@@ -1,15 +1,18 @@
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #0b0f14;
+:root {
+  --bg-main: #0e1621;
+  --bg-panel: #162235;
+  --bg-surface: #1c2b42;
+  --bg-surface-alt: #223552;
+
+  --border-soft: #2f4565;
+  --text-main: #e6edf7;
+  --text-muted: #9fb3c8;
+  --accent: #4da3ff;
 }
 
-package.json (scripts only)
-
-{
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  }
+body {
+  margin: 0;
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: system-ui, sans-serif;
 }
