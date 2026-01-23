@@ -1,8 +1,9 @@
 export default function MetricCard({
   title,
-  rows,
   valueKey,
+  rows,
   avg,
+  onClick,
 }: any) {
   const current = rows.length ? rows[rows.length - 1][valueKey] : "--";
   const deviation =
@@ -12,18 +13,19 @@ export default function MetricCard({
 
   return (
     <div
+      onClick={onClick}
       style={{
-        background: "#052e16",
-        padding: 20,
+        background: "#1e293b",
+        padding: 18,
         borderRadius: 12,
         width: 180,
-        color: "white",
+        cursor: "pointer",
       }}
     >
       <h4>{title}</h4>
       <h2>{current}</h2>
       <small>
-        Avg: {avg} | {deviation}% from avg  
+        Avg: {avg} | {deviation}% from avg
         <br />
         Updated every 4s
       </small>
