@@ -1,4 +1,35 @@
 import React from "react";
+// src/pages/applications/Applications.tsx
+
+export default function Applications() {
+  const card = {
+    padding: "30px",
+    borderRadius: "14px",
+    background: "rgba(255,255,255,0.08)",
+    cursor: "pointer",
+    textAlign: "center" as const,
+  };
+
+  return (
+    <>
+      <h1>Real-World Applications</h1>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "20px",
+        }}
+      >
+        <div style={card}>Aquaculture</div>
+        <div style={card}>Agriculture</div>
+        <div style={card}>Industrial Water</div>
+        <div style={card}>Drinking Water</div>
+        <div style={card}>Wastewater</div>
+      </div>
+    </>
+  );
+}
 
 const applications = [
   {
