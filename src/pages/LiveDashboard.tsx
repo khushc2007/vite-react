@@ -1,66 +1,76 @@
-import { useEffect } from "react";
-import MetricCard from "../components/MetricCard";
+import { useEffect, useState } from "react";
+import {
+  addReading,
+  getReadings,
+  canRunPrediction,
+  saveIteration,
+} from "../services/dataService";
 import DataTable from "../components/DataTable";
-import { Reading } from "../App";
 
-const MAX_ROWS = 30;
+export default function LiveDashboard() {
+  const [rows, setRows] = useState(getReadings());
+  const [iterationName, setIterationName] = useState("");
 
-export default function LiveDashboard({
-  readings,
-  setReadings,
-  openChart,
-  openSave,
-}: {
-  readings: Reading[];
-  setReadings: any;
-  openChart: any;
-  openSave: () => void;
-}) {
   useEffect(() => {
     const id = setInterval(() => {
-      setReadings((prev: Reading[]) => {
-        const next: Reading = {
-          sl: prev.length + 1,
-          time: new Date().toLocaleTimeString(),
-          ph: +(7 + Math.random()).toFixed(2),
-          tds: +(300 + Math.random() * 200).toFixed(1),
-          turbidity: +(2 + Math.random()).toFixed(2),
-        };
-        return [...prev, next].slice(-MAX_ROWS);
+      addReading({
+        time: new Date().toLocaleTimeString(),
+        ph: +(7 + Math.random()).toFixed(2),
+        tds: +(500 + Math.random() * 50).toFixed(1),
+        turbidity: +(2 + Math.random()).toFixed(2),
       });
-    }, 10000);
+
+      setRows([...getReadings()]);
+    }, 4000);
 
     return () => clearInterval(id);
   }, []);
 
-  const latest = readings[readings.length - 1];
+  const avg = (key: "ph" | "tds" | "turbidity") =>
+    rows.reduce((a, b) => a + b[key], 0) / (rows.length || 1);
 
   return (
     <>
       <h1>Live Dashboard</h1>
 
-      {latest && (
-        <div style={{ display: "flex", gap: 16 }}>
-          <MetricCard label="pH" metric="ph" readings={readings} onClick={openChart} />
-          <MetricCard label="TDS" metric="tds" readings={readings} onClick={openChart} />
-          <MetricCard label="Turbidity" metric="turbidity" readings={readings} onClick={openChart} />
+      <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+        {["ph", "tds", "turbidity"].map((k) => (
+          <div
+            key={k}
+            style={{
+              flex: 1,
+              padding: "20px",
+              borderRadius: "12px",
+              background: "rgba(255,255,255,0.08)",
+            }}
+          >
+            <h3>{k.toUpperCase()}</h3>
+            <div style={{ fontSize: "26px" }}>
+              {rows.at(-1)?.[k as keyof typeof rows[0]] ?? "--"}
+            </div>
+            <div style={{ opacity: 0.7, fontSize: "12px" }}>
+              Avg: {avg(k as any).toFixed(2)} • Updated every 4s
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <DataTable rows={rows} />
+
+      {canRunPrediction() && (
+        <div style={{ marginTop: "20px" }}>
+          <input
+            placeholder="Iteration name"
+            value={iterationName}
+            onChange={(e) => setIterationName(e.target.value)}
+          />
+          <button
+            style={{ marginLeft: "12px" }}
+            onClick={() => saveIteration(iterationName)}
+          >
+            Run Prediction Model
+          </button>
         </div>
-      )}
-
-      <DataTable readings={readings} />
-
-      <button
-        onClick={openSave}
-        disabled={readings.length < MAX_ROWS}
-        style={{ marginTop: 20 }}
-      >
-        Run Prediction Model
-      </button>
-
-      {readings.length < MAX_ROWS && (
-        <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
-          Prediction available after {MAX_ROWS} readings
-        </p>
       )}
     </>
   );
