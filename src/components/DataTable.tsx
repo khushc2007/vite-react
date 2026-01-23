@@ -1,26 +1,40 @@
 interface Props {
-  ph: number;
-  tds: number;
-  turbidity: number;
+  rows: any[];
 }
 
-export default function DataTable({ ph, tds, turbidity }: Props) {
+export default function DataTable({ rows }: Props) {
   return (
-    <table style={{ marginTop: 20, width: "100%", color: "#fff" }}>
-      <thead>
-        <tr>
-          <th>pH</th>
-          <th>TDS</th>
-          <th>Turbidity</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>{ph}</td>
-          <td>{tds}</td>
-          <td>{turbidity}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div
+      style={{
+        marginTop: 12,
+        background: "#020617",
+        borderRadius: 12,
+        padding: 12,
+        maxHeight: 260,
+        overflowY: "auto",
+        border: "1px solid #1e293b",
+      }}
+    >
+      <table style={{ width: "100%", color: "#e5e7eb" }}>
+        <thead>
+          <tr style={{ textAlign: "left", color: "#94a3b8" }}>
+            <th>Time</th>
+            <th>pH</th>
+            <th>TDS</th>
+            <th>Turbidity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              <td>{r.time}</td>
+              <td>{r.ph}</td>
+              <td>{r.tds}</td>
+              <td>{r.turbidity}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
