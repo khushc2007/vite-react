@@ -1,67 +1,93 @@
-import { useEffect, useState } from "react";
-import {
-  pushLiveData,
-  getLiveData,
-  getAverages,
-  saveIteration,
-  MAX_ROWS,
-} from "../services/dataService";
-
+import { useEffect, useState, useRef } from "react";
 import MetricCard from "../components/MetricCard";
 import DatasetTable from "../components/DatasetTable";
 import ChartModal from "../components/ChartModal";
 
-type PredictionResult = {
-  reusable: "YES" | "NO";
-  tank: "A" | "B";
-  filtrationBracket: string;
-  filtrationMethod: string;
+const BACKEND_URL = "https://water-quality-backend-8-ffv5.onrender.com/analyze-water"; // 🔴 CHANGE THIS
+const INTERVAL_MS = 4000;
+const MAX_ROWS = 10;
+
+type Row = {
+  slNo: number;
+  time: string;
+  ph: number;
+  turbidity: number;
+  tds: number;
 };
 
 export default function LiveDashboard() {
-  const [rows, setRows] = useState<any[]>([]);
-  const [avg, setAvg] = useState<any>(null);
-  const [activeMetric, setActiveMetric] = useState<string | null>(null);
-  const [prediction, setPrediction] = useState<PredictionResult | null>(null);
+  const [rows, setRows] = useState<Row[]>([]);
+  const [activeMetric, setActiveMetric] = useState<
+    "ph" | "tds" | "turbidity" | null
+  >(null);
+  const [prediction, setPrediction] = useState<any>(null);
 
+  const slCounter = useRef(1); // prevents reset on re-render
+
+  /* ===============================
+     CONTINUOUS BACKEND POLLING
+  ================================ */
   useEffect(() => {
-    const id = setInterval(() => {
-      pushLiveData();
-      setRows(getLiveData());
-      setAvg(getAverages());
-    }, 4000);
+    const id = setInterval(async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/latest`);
+        const data = await res.json();
+
+        if (!data) return;
+
+        setRows((prev) => {
+          const next: Row = {
+            slNo: slCounter.current++,
+            time: data.time,
+            ph: data.ph,
+            turbidity: data.turbidity,
+            tds: data.tds,
+          };
+
+          const updated = [...prev, next];
+          return updated.slice(-MAX_ROWS);
+        });
+      } catch (err) {
+        console.error("Backend not reachable", err);
+      }
+    }, INTERVAL_MS);
 
     return () => clearInterval(id);
   }, []);
 
-  const runPredictionModel = () => {
+  /* ===============================
+     AVERAGES (DERIVED, NOT STORED)
+  ================================ */
+  const avg = rows.length
+    ? {
+        ph:
+          rows.reduce((s, r) => s + r.ph, 0) / rows.length,
+        turbidity:
+          rows.reduce((s, r) => s + r.turbidity, 0) /
+          rows.length,
+        tds:
+          rows.reduce((s, r) => s + r.tds, 0) / rows.length,
+      }
+    : null;
+
+  /* ===============================
+     RUN PREDICTION MODEL
+  ================================ */
+  const runPrediction = async () => {
     if (!avg) return;
 
-    // ---- Simulated backend response ----
-    const reusable =
-      avg.ph >= 6.5 && avg.ph <= 8.5 && avg.tds < 1000 ? "YES" : "NO";
+    try {
+      const res = await fetch(`${BACKEND_URL}/analyze-water`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(avg),
+      });
 
-    const result: PredictionResult = reusable === "YES"
-      ? {
-          reusable: "YES",
-          tank: "A",
-          filtrationBracket: "F1",
-          filtrationMethod: "Basic Sand + Carbon",
-        }
-      : {
-          reusable: "NO",
-          tank: "B",
-          filtrationBracket: "F3",
-          filtrationMethod: "Coagulation + Sand Filtration",
-        };
-
-    setPrediction(result);
-
-    saveIteration({
-      timestamp: new Date().toLocaleString(),
-      averages: avg,
-      result,
-    });
+      const result = await res.json();
+      setPrediction(result);
+    } catch (err) {
+      console.error("Prediction failed", err);
+    }
   };
 
   return (
@@ -69,47 +95,45 @@ export default function LiveDashboard() {
       <h1>Live Dashboard</h1>
 
       {/* ===== METRIC CARDS ===== */}
-      <div style={{ display: "flex", gap: 16 }}>
-        {avg && (
-          <>
-            <MetricCard
-              title="pH"
-              valueKey="ph"
-              rows={rows}
-              avg={avg.ph}
-              onClick={() => setActiveMetric("ph")}
-            />
-            <MetricCard
-              title="TDS"
-              valueKey="tds"
-              rows={rows}
-              avg={avg.tds}
-              onClick={() => setActiveMetric("tds")}
-            />
-            <MetricCard
-              title="Turbidity"
-              valueKey="turbidity"
-              rows={rows}
-              avg={avg.turbidity}
-              onClick={() => setActiveMetric("turbidity")}
-            />
-          </>
-        )}
-      </div>
+      {avg && (
+        <div style={{ display: "flex", gap: 16 }}>
+          <MetricCard
+            title="pH"
+            valueKey="ph"
+            rows={rows}
+            avg={avg.ph}
+            onClick={() => setActiveMetric("ph")}
+          />
+          <MetricCard
+            title="TDS"
+            valueKey="tds"
+            rows={rows}
+            avg={avg.tds}
+            onClick={() => setActiveMetric("tds")}
+          />
+          <MetricCard
+            title="Turbidity"
+            valueKey="turbidity"
+            rows={rows}
+            avg={avg.turbidity}
+            onClick={() => setActiveMetric("turbidity")}
+          />
+        </div>
+      )}
 
       {/* ===== DATA TABLE ===== */}
       <DatasetTable rows={rows} />
 
-      {/* ===== RUN MODEL BUTTON ===== */}
+      {/* ===== RUN MODEL ===== */}
       {rows.length === MAX_ROWS && (
         <button
-          onClick={runPredictionModel}
+          onClick={runPrediction}
           style={{
             marginTop: 20,
             padding: "14px 22px",
             fontSize: "16px",
             borderRadius: "10px",
-            background: "linear-gradient(135deg, #22c55e, #16a34a)",
+            background: "linear-gradient(135deg,#22c55e,#16a34a)",
             color: "#fff",
             border: "none",
             cursor: "pointer",
@@ -133,7 +157,9 @@ export default function LiveDashboard() {
           <p><b>Reusable:</b> {prediction.reusable}</p>
           <p><b>Tank:</b> {prediction.tank}</p>
           <p><b>Filtration Bracket:</b> {prediction.filtrationBracket}</p>
-          <p><b>Method:</b> {prediction.filtrationMethod}</p>
+          {prediction.filtrationMethod && (
+            <p><b>Method:</b> {prediction.filtrationMethod}</p>
+          )}
         </div>
       )}
 
