@@ -1,95 +1,79 @@
-import { Page } from "../App";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 
-const cardStyle = {
-  padding: "40px",
-  borderRadius: "16px",
-  background: "rgba(255,255,255,0.08)",
-  cursor: "pointer",
-  textAlign: "center" as const,
-  fontSize: "18px",
+type HomeProps = {
+  navigate: (page: string) => void;
 };
 
-export default function Home() {
-  const navigate = useNavigate();
-
+export default function Home({ navigate }: HomeProps) {
   return (
-    <>
-      <h1 style={{ marginBottom: "30px" }}>Home</h1>
+    <div style={styles.container}>
+      <h1 style={styles.title}>Water Quality Monitoring System</h1>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "24px",
-        }}
-      >
-        <div style={cardStyle} onClick={() => navigate("/live")}>
-          Live Dashboard
+      <div style={styles.grid}>
+        <div
+          style={styles.card}
+          onClick={() => navigate("live")}
+        >
+          <h2>Live Dashboard</h2>
+          <p>Real-time sensor monitoring</p>
         </div>
 
-        <div style={cardStyle}>History</div>
-
-        <div style={cardStyle} onClick={() => navigate("/applications")}>
-          Real-World Applications
+        <div
+          style={styles.card}
+          onClick={() => navigate("history")}
+        >
+          <h2>History</h2>
+          <p>Saved iterations & reports</p>
         </div>
 
-        <div style={cardStyle}>Settings</div>
+        <div
+          style={styles.card}
+          onClick={() => navigate("applications")}
+        >
+          <h2>Real World Applications</h2>
+          <p>Use-cases & filtration domains</p>
+        </div>
+
+        <div
+          style={styles.card}
+          onClick={() => navigate("settings")}
+        >
+          <h2>Settings</h2>
+          <p>Research, FAQ, data control</p>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 
+/* ---------- STYLES ---------- */
 
-export default function Home({ navigate }: { navigate: (p: string) => void }) {
-  const tileStyle = {
-    background: "#111827",
-    border: "1px solid #1f2933",
-    borderRadius: 16,
-    padding: 40,
-    cursor: "pointer",
-    fontSize: 22,
-    fontWeight: 600,
+const styles: { [key: string]: React.CSSProperties } = {
+  container: {
+    minHeight: "100vh",
+    background: "#0f172a",
     color: "#e5e7eb",
-    textAlign: "center" as const,
-  };
-
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
-      <div style={tileStyle} onClick={() => navigate("live")}>Live Dashboard</div>
-      <div style={tileStyle} onClick={() => navigate("history")}>History</div>
-      <div style={tileStyle} onClick={() => navigate("settings")}>Settings</div>
-    </div>
-  );
-}
-
-function HomeCard({
-  title,
-  onClick,
-}: {
-  title: string;
-  onClick: () => void;
-}) {
-  return (
-    <div onClick={onClick} style={card}>
-      {title}
-    </div>
-  );
-}
-
-const grid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, 1fr)",
-  gap: 30,
-};
-
-const card = {
-  background: "#111827",
-  padding: 50,
-  borderRadius: 16,
-  textAlign: "center" as const,
-  color: "#e5e7eb",
-  cursor: "pointer",
-  fontSize: 20,
-  boxShadow: "0 0 25px rgba(56,189,248,0.15)",
+    padding: "40px",
+  },
+  title: {
+    textAlign: "center",
+    marginBottom: "40px",
+    fontSize: "32px",
+    fontWeight: 700,
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    gap: "30px",
+    maxWidth: "1000px",
+    margin: "0 auto",
+  },
+  card: {
+    background: "#1e293b",
+    borderRadius: "14px",
+    padding: "30px",
+    cursor: "pointer",
+    transition: "all 0.25s ease",
+    border: "1px solid #334155",
+  },
 };
