@@ -2,10 +2,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./MainLayout";
 
 import Home from "./pages/Home";
-import Applications from "./pages/Applications/Applications";
-import Aquaculture from "./pages/Applications/Aquaculture";
-import Agriculture from "./pages/Applications/Agriculture";
-import Industrial from "./pages/Applications/Industrial";
+import Applications from "./pages/applications/Applications";
+import Aquaculture from "./pages/applications/Aquaculture";
+import Agriculture from "./pages/applications/Agriculture";
+import Industrial from "./pages/applications/Industrial";
 
 // placeholders if not ready
 const LiveDashboard = () => <div>Live Dashboard</div>;
