@@ -1,341 +1,221 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
-/* ================= CONFIG ================= */
-const API_URL = "https://water-quality-backend-6-8hwp.onrender.com/analyze-water";
-
-/* ================= TYPES ================= */
-type Reading = { ph: number; turbidity: number; tds: number };
-type Decision = {
-  reusable: string;
-  tank: string;
-  filtration: string;
-  explanation: string;
-};
-type HistoryItem = {
-  time: string;
-  input: Reading;
-  decision: Decision;
+/* =====================
+   MOCK SENSOR DATA
+===================== */
+const sensorData = {
+  current: { ph: 7.4, tds: 620, turbidity: 18 },
+  history: [
+    { time: "10:00", ph: 7.2, tds: 600, turbidity: 15 },
+    { time: "10:10", ph: 7.3, tds: 610, turbidity: 16 },
+    { time: "10:20", ph: 7.4, tds: 620, turbidity: 18 },
+    { time: "10:30", ph: 7.5, tds: 640, turbidity: 20 },
+  ],
 };
 
-/* ================= APP ================= */
+/* =====================
+   PREDICTION LOGIC
+===================== */
+function runPrediction({ ph, tds, turbidity }) {
+  const reusable =
+    ph >= 6.5 && ph <= 8.5 && tds <= 1000 && turbidity <= 10;
 
+  let filtration = "F1 – Basic Filtration";
+  if (tds > 1500) filtration = "F5 – Reverse Osmosis";
+  else if (tds > 1000) filtration = "F4 – Carbon + UF";
+  else if (turbidity > 30) filtration = "F3 – Coagulation + Sand";
+  else if (turbidity > 10) filtration = "F2 – Sand + Carbon";
+
+  return {
+    reusable: reusable ? "Reusable" : "Not Reusable",
+    filtration,
+  };
+}
+
+/* =====================
+   MAIN APP
+===================== */
 export default function App() {
-  const [page, setPage] = useState<
-    "analyze" | "report" | "history" | "applications"
-  >("analyze");
+  const [page, setPage] = useState("home");
+
+  const prediction = runPrediction(sensorData.current);
 
   return (
     <div style={styles.app}>
-      {/* SIDEBAR */}
-      <aside style={styles.sidebar}>
-        <h2 style={styles.logo}>WATER•IQ</h2>
+      {page === "home" && (
+        <>
+          <h1 style={styles.title}>Water Quality Monitoring System</h1>
 
-        <SidebarItem label="Analyze" onClick={() => setPage("analyze")} />
-        <SidebarItem label="Report" onClick={() => setPage("report")} />
-        <SidebarItem label="History" onClick={() => setPage("history")} />
-        <SidebarItem
-          label="Applications"
-          onClick={() => setPage("applications")}
-        />
-      </aside>
+          <div style={styles.homeGrid}>
+            <HomeCard title="Live Dashboard" onClick={() => setPage("live")} />
+            <HomeCard title="History" onClick={() => setPage("history")} />
+            <HomeCard
+              title="Real-World Applications"
+              onClick={() => setPage("applications")}
+            />
+            <HomeCard title="Settings" onClick={() => setPage("settings")} />
+          </div>
+        </>
+      )}
 
-      {/* MAIN */}
-      <main style={styles.main}>
-        {page === "analyze" && <Analyze />}
-        {page === "report" && <Report />}
-        {page === "history" && <History />}
-        {page === "applications" && <Applications />}
-      </main>
+      {page === "live" && (
+        <>
+          <BackButton onClick={() => setPage("home")} />
+
+          <h2>Live Dashboard</h2>
+
+          {/* Cards */}
+          <div style={styles.cardRow}>
+            <StatCard title="pH" value={sensorData.current.ph} />
+            <StatCard title="TDS" value={sensorData.current.tds} />
+            <StatCard title="Turbidity" value={sensorData.current.turbidity} />
+          </div>
+
+          {/* Table */}
+          <h3>Recent Readings</h3>
+          <div style={styles.tableWrapper}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>pH</th>
+                  <th>TDS</th>
+                  <th>Turbidity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sensorData.history.map((r, i) => (
+                  <tr key={i}>
+                    <td>{r.time}</td>
+                    <td>{r.ph}</td>
+                    <td>{r.tds}</td>
+                    <td>{r.turbidity}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Prediction */}
+          <h3>Prediction Model Output</h3>
+          <div style={styles.predictionBox}>
+            <p><strong>Status:</strong> {prediction.reusable}</p>
+            <p><strong>Recommended Filtration:</strong> {prediction.filtration}</p>
+          </div>
+        </>
+      )}
+
+      {page === "history" && (
+        <>
+          <BackButton onClick={() => setPage("home")} />
+          <h2>History</h2>
+          <p>Saved prediction iterations will appear here.</p>
+        </>
+      )}
+
+      {page === "applications" && (
+        <>
+          <BackButton onClick={() => setPage("home")} />
+          <h2>Real-World Applications</h2>
+          <p>• Greywater reuse</p>
+          <p>• Agriculture irrigation</p>
+          <p>• Aquaculture monitoring</p>
+        </>
+      )}
+
+      {page === "settings" && (
+        <>
+          <BackButton onClick={() => setPage("home")} />
+          <h2>Settings</h2>
+          <p>Configuration options will appear here.</p>
+        </>
+      )}
     </div>
   );
 }
 
-/* ================= SIDEBAR ITEM ================= */
-
-function SidebarItem({
-  label,
-  onClick
-}: {
-  label: string;
-  onClick: () => void;
-}) {
+/* =====================
+   SMALL COMPONENTS
+===================== */
+function HomeCard({ title, onClick }) {
   return (
-    <div style={styles.sidebarItem} onClick={onClick}>
-      {label}
-    </div>
-  );
-}
-
-/* ================= ANALYZE ================= */
-
-function Analyze() {
-  const [input, setInput] = useState({ ph: "", turbidity: "", tds: "" });
-  const [decision, setDecision] = useState<Decision | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const analyze = async () => {
-    setLoading(true);
-    setDecision(null);
-
-    const payload = {
-      ph: Number(input.ph),
-      turbidity: Number(input.turbidity),
-      tds: Number(input.tds)
-    };
-
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-    setDecision(data);
-
-    const history: HistoryItem[] = JSON.parse(
-      localStorage.getItem("history") || "[]"
-    );
-    history.push({
-      time: new Date().toLocaleString(),
-      input: payload,
-      decision: data
-    });
-    localStorage.setItem("history", JSON.stringify(history));
-
-    setLoading(false);
-  };
-
-  return (
-    <>
-      <h1>Manual Water Analysis</h1>
-
-      <div style={styles.grid3}>
-        <Input label="pH" value={input.ph} setValue={v => setInput({ ...input, ph: v })} />
-        <Input
-          label="Turbidity (NTU)"
-          value={input.turbidity}
-          setValue={v => setInput({ ...input, turbidity: v })}
-        />
-        <Input
-          label="TDS (ppm)"
-          value={input.tds}
-          setValue={v => setInput({ ...input, tds: v })}
-        />
-      </div>
-
-      <button style={styles.primaryBtn} onClick={analyze}>
-        Analyze
-      </button>
-
-      {loading && <p>Processing…</p>}
-      {decision && <DecisionCard decision={decision} />}
-    </>
-  );
-}
-
-/* ================= REPORT ================= */
-/* AVERAGE OF ENTIRE HISTORY */
-
-function Report() {
-  const history: HistoryItem[] = JSON.parse(
-    localStorage.getItem("history") || "[]"
-  );
-
-  if (history.length === 0) {
-    return <p>No history available for report.</p>;
-  }
-
-  const avg = history.reduce(
-    (a, b) => ({
-      ph: a.ph + b.input.ph,
-      turbidity: a.turbidity + b.input.turbidity,
-      tds: a.tds + b.input.tds
-    }),
-    { ph: 0, turbidity: 0, tds: 0 }
-  );
-
-  const avgData = {
-    ph: +(avg.ph / history.length).toFixed(2),
-    turbidity: +(avg.turbidity / history.length).toFixed(1),
-    tds: Math.round(avg.tds / history.length)
-  };
-
-  return (
-    <>
-      <h1>System Report (Averaged)</h1>
-
-      <div style={styles.grid3}>
-        <Metric title="Average pH" value={avgData.ph} />
-        <Metric title="Average Turbidity" value={avgData.turbidity} />
-        <Metric title="Average TDS" value={avgData.tds} />
-      </div>
-
-      <p style={styles.note}>
-        Report generated from {history.length} historical analyses.
-      </p>
-    </>
-  );
-}
-
-/* ================= HISTORY ================= */
-
-function History() {
-  const history: HistoryItem[] = JSON.parse(
-    localStorage.getItem("history") || "[]"
-  );
-
-  if (history.length === 0) return <p>No history yet.</p>;
-
-  return (
-    <>
-      <h1>History</h1>
-      {history.map((h, i) => (
-        <div key={i} style={styles.historyCard}>
-          <p><b>{h.time}</b></p>
-          <p>pH: {h.input.ph}, Turbidity: {h.input.turbidity}, TDS: {h.input.tds}</p>
-          <p>Reusable: {h.decision.reusable}</p>
-          <p>Filtration: {h.decision.filtration}</p>
-        </div>
-      ))}
-    </>
-  );
-}
-
-/* ================= APPLICATIONS ================= */
-
-function Applications() {
-  return (
-    <>
-      <h1>Real-World Applications</h1>
-      <p>
-        This section will describe practical deployments such as:
-      </p>
-      <ul>
-        <li>Agricultural water reuse</li>
-        <li>Aquaculture monitoring</li>
-        <li>Smart irrigation systems</li>
-        <li>Industrial wastewater pre-treatment</li>
-      </ul>
-      <p>
-        (Content to be expanded.)
-      </p>
-    </>
-  );
-}
-
-/* ================= UI COMPONENTS ================= */
-
-function Input({
-  label,
-  value,
-  setValue
-}: {
-  label: string;
-  value: string;
-  setValue: (v: string) => void;
-}) {
-  return (
-    <div style={styles.inputGroup}>
-      <label>{label}</label>
-      <input
-        type="number"
-        value={value}
-        onChange={e => setValue(e.target.value)}
-      />
-    </div>
-  );
-}
-
-function Metric({ title, value }: { title: string; value: number }) {
-  return (
-    <div style={styles.metric}>
+    <div style={styles.homeCard} onClick={onClick}>
       <h3>{title}</h3>
-      <p>{value}</p>
     </div>
   );
 }
 
-function DecisionCard({ decision }: { decision: Decision }) {
+function StatCard({ title, value }) {
   return (
-    <div style={styles.card}>
-      <p><b>Reusable:</b> {decision.reusable}</p>
-      <p><b>Tank:</b> {decision.tank}</p>
-      <p><b>Filtration:</b> {decision.filtration}</p>
-      <p>{decision.explanation}</p>
+    <div style={styles.statCard}>
+      <h4>{title}</h4>
+      <p style={{ fontSize: "26px", color: "#38bdf8" }}>{value}</p>
     </div>
   );
 }
 
-/* ================= STYLES ================= */
+function BackButton({ onClick }) {
+  return (
+    <button onClick={onClick} style={styles.backBtn}>
+      ← Back
+    </button>
+  );
+}
 
-const styles: any = {
+/* =====================
+   STYLES
+===================== */
+const styles = {
   app: {
-    display: "flex",
-    minHeight: "100vh",
-    background: "#020617",
+    padding: "30px",
+    fontFamily: "Segoe UI, sans-serif",
+    background: "#0b0f14",
     color: "#e5e7eb",
-    fontFamily: "system-ui"
+    minHeight: "100vh",
   },
-  sidebar: {
-    width: 220,
-    background: "#020617",
-    borderRight: "1px solid #1e293b",
-    padding: 20
-  },
-  logo: {
-    marginBottom: 30,
-    letterSpacing: 2
-  },
-  sidebarItem: {
-    padding: 12,
-    cursor: "pointer",
-    borderBottom: "1px solid #1e293b"
-  },
-  main: {
-    flex: 1,
-    padding: 30
-  },
-  grid3: {
+  title: { marginBottom: "30px" },
+  homeGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: 20,
-    marginBottom: 20
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "30px",
   },
-  inputGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6
+  homeCard: {
+    background: "#111827",
+    padding: "50px",
+    textAlign: "center",
+    borderRadius: "12px",
+    cursor: "pointer",
+    fontSize: "18px",
   },
-  primaryBtn: {
-    padding: "10px 18px",
-    background: "#2563eb",
-    color: "#fff",
-    border: "none",
-    borderRadius: 6,
-    cursor: "pointer"
+  cardRow: { display: "flex", gap: "20px", marginBottom: "20px" },
+  statCard: {
+    flex: 1,
+    background: "#111827",
+    padding: "20px",
+    borderRadius: "10px",
+    textAlign: "center",
   },
-  metric: {
+  tableWrapper: {
+    maxHeight: "200px",
+    overflowY: "auto",
+    marginBottom: "20px",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+  },
+  predictionBox: {
     background: "#020617",
-    border: "1px solid #1e293b",
-    padding: 20,
-    borderRadius: 8,
-    textAlign: "center"
+    padding: "20px",
+    borderRadius: "10px",
+    marginTop: "10px",
   },
-  card: {
-    marginTop: 20,
-    padding: 20,
-    background: "#020617",
-    border: "1px solid #1e293b",
-    borderRadius: 8
+  backBtn: {
+    marginBottom: "20px",
+    background: "none",
+    border: "1px solid #38bdf8",
+    color: "#38bdf8",
+    padding: "6px 12px",
+    cursor: "pointer",
   },
-  historyCard: {
-    marginBottom: 15,
-    padding: 15,
-    border: "1px solid #1e293b",
-    borderRadius: 6
-  },
-  note: {
-    marginTop: 20,
-    color: "#94a3b8"
-  }
 };
