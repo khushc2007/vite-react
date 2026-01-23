@@ -5,7 +5,7 @@ import { useState } from "react";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import LiveDashboard from "./pages/LiveDashboard";
-import Applications from "./pages/Applications";
+import Applications from "./pages/applications/Applications";
 import Settings from "./pages/Settings";
 import History from "./pages/History";
 
