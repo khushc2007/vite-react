@@ -1,64 +1,138 @@
-import { Page } from "../App";
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
 
-type Props = {
-  page: Page;
-  setPage: (page: Page) => void;
+const sectionStyle = {
+  marginBottom: "18px",
 };
 
-export default function Sidebar({ page, setPage }: Props) {
+const sectionTitle = {
+  fontSize: "13px",
+  letterSpacing: "0.5px",
+  color: "#9aa4b2",
+  marginBottom: "6px",
+  marginTop: "14px",
+};
+
+const linkStyle = {
+  display: "block",
+  padding: "8px 12px",
+  borderRadius: "6px",
+  textDecoration: "none",
+  color: "#e6eaf0",
+  fontSize: "14px",
+};
+
+const activeLinkStyle = {
+  background: "#1f2a44",
+};
+
+export default function Sidebar() {
+  const [homeOpen, setHomeOpen] = useState(true);
+  const [appsOpen, setAppsOpen] = useState(true);
+
   return (
     <aside
       style={{
         width: "240px",
-        backgroundColor: "#020617",
-        padding: "20px",
-        borderRadius: "12px",
+        background: "#0f172a",
+        padding: "16px",
+        height: "100vh",
+        boxSizing: "border-box",
       }}
     >
-      <h2 style={{ marginBottom: "24px", color: "#38bdf8" }}>
-        IoT WQMS
-      </h2>
+      <h2 style={{ color: "#ffffff", marginBottom: "20px" }}>Water IQ</h2>
 
-      {/* HOME */}
-      <div>
-        <p
-          style={{ cursor: "pointer", fontWeight: "bold" }}
-          onClick={() => setPage("home")}
+      {/* HOME SECTION */}
+      <div style={sectionStyle}>
+        <div
+          style={sectionTitle}
+          onClick={() => setHomeOpen(!homeOpen)}
         >
-          🏠 Home
-        </p>
+          HOME
+        </div>
 
-        {/* Nested Home Sections */}
-        {page === "home" && (
-          <div style={{ marginLeft: "16px", marginTop: "8px" }}>
-            <p
-              style={{ cursor: "pointer" }}
-              onClick={() => setPage("live")}
+        {homeOpen && (
+          <>
+            <NavLink
+              to="/dashboard"
+              style={({ isActive }) =>
+                isActive
+                  ? { ...linkStyle, ...activeLinkStyle }
+                  : linkStyle
+              }
             >
-              📊 Live Dashboard
-            </p>
+              Live Dashboard
+            </NavLink>
 
-            <p
-              style={{ cursor: "pointer" }}
-              onClick={() => setPage("history")}
+            <NavLink
+              to="/history"
+              style={({ isActive }) =>
+                isActive
+                  ? { ...linkStyle, ...activeLinkStyle }
+                  : linkStyle
+              }
             >
-              🕒 History
-            </p>
+              History
+            </NavLink>
 
-            <p
-              style={{ cursor: "pointer" }}
-              onClick={() => setPage("applications")}
+            <NavLink
+              to="/settings"
+              style={({ isActive }) =>
+                isActive
+                  ? { ...linkStyle, ...activeLinkStyle }
+                  : linkStyle
+              }
             >
-              🌍 Applications
-            </p>
+              Settings
+            </NavLink>
+          </>
+        )}
+      </div>
 
-            <p
-              style={{ cursor: "pointer" }}
-              onClick={() => setPage("settings")}
+      {/* APPLICATIONS SECTION */}
+      <div style={sectionStyle}>
+        <div
+          style={sectionTitle}
+          onClick={() => setAppsOpen(!appsOpen)}
+        >
+          APPLICATIONS
+        </div>
+
+        {appsOpen && (
+          <>
+            <NavLink
+              to="/applications/aquaculture"
+              style={({ isActive }) =>
+                isActive
+                  ? { ...linkStyle, ...activeLinkStyle }
+                  : linkStyle
+              }
             >
-              ⚙️ Settings
-            </p>
-          </div>
+              Aquaculture
+            </NavLink>
+
+            <NavLink
+              to="/applications/agriculture"
+              style={({ isActive }) =>
+                isActive
+                  ? { ...linkStyle, ...activeLinkStyle }
+                  : linkStyle
+              }
+            >
+              Agriculture
+            </NavLink>
+
+            <NavLink
+              to="/applications/industrial"
+              style={({ isActive }) =>
+                isActive
+                  ? { ...linkStyle, ...activeLinkStyle }
+                  : linkStyle
+              }
+            >
+              Industrial
+            </NavLink>
+          </>
         )}
       </div>
     </aside>
