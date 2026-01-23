@@ -1,91 +1,77 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import MetricCard from "../components/MetricCard";
 import DataTable from "../components/DataTable";
-import { analyzeWater } from "../services/dataService";
 
-export default function LiveDashboard({
-  openChart,
-}: {
+interface Props {
   openChart: (key: string) => void;
-}) {
-  const [data, setData] = useState<number[]>([]);
-  const [ph, setPh] = useState(7.2);
-  const [tds, setTds] = useState(420);
-  const [turbidity, setTurbidity] = useState(4);
-  const [result, setResult] = useState<any>(null);
+}
 
-  // simulate live data
+export default function LiveDashboard({ openChart }: Props) {
+  const [data, setData] = useState<any[]>([]);
+
+  // Mock live data every 10 seconds
   useEffect(() => {
-    const i = setInterval(() => {
-      const v = +(ph + (Math.random() - 0.5) * 0.1).toFixed(2);
-      setPh(v);
-      setData((d) => [...d.slice(-30), v]);
-    }, 2000);
-    return () => clearInterval(i);
+    const interval = setInterval(() => {
+      const point = {
+        time: new Date().toLocaleTimeString(),
+        ph: +(7 + Math.random()).toFixed(2),
+        tds: Math.floor(300 + Math.random() * 200),
+        turbidity: +(2 + Math.random()).toFixed(2),
+      };
+      setData((prev) => [...prev.slice(-20), point]);
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  const avg =
-    data.reduce((a, b) => a + b, 0) / (data.length || 1);
-
-  const runPrediction = () => {
-    setResult(analyzeWater({ ph, tds, turbidity }));
-  };
+  const latest = data[data.length - 1] || {};
 
   return (
-    <>
-      <h2 style={{ color: "#e5e7eb" }}>Live Dashboard</h2>
-
-      {/* TABLE */}
-      <DataTable />
+    <div>
+      <h1 style={{ color: "#e5e7eb", marginBottom: 20 }}>
+        Live Dashboard
+      </h1>
 
       {/* CARDS */}
-      <div style={{ display: "flex", gap: 20, marginTop: 20 }}>
+      <div style={{ display: "flex", gap: 16 }}>
         <MetricCard
           title="pH"
-          current={ph}
-          average={avg}
+          value={latest.ph}
           onClick={() => openChart("ph")}
         />
         <MetricCard
           title="TDS"
-          current={tds}
-          average={tds}
+          value={latest.tds}
           onClick={() => openChart("tds")}
         />
         <MetricCard
           title="Turbidity"
-          current={turbidity}
-          average={turbidity}
+          value={latest.turbidity}
           onClick={() => openChart("turbidity")}
         />
       </div>
 
-      <button style={btn} onClick={runPrediction}>
-        Run Prediction Model
-      </button>
+      {/* TABLE */}
+      <div style={{ marginTop: 30 }}>
+        <h2 style={{ color: "#cbd5f5" }}>Live Readings</h2>
+        <DataTable rows={data} />
+      </div>
 
-      {result && (
-        <div style={resultBox}>
-          <p>Reusable: {result.reusable}</p>
-          <p>Filtration: {result.bracket}</p>
-        </div>
-      )}
-    </>
+      {/* PREDICTION BUTTON */}
+      <div style={{ marginTop: 30 }}>
+        <button
+          style={{
+            padding: "12px 24px",
+            background: "#38bdf8",
+            border: "none",
+            borderRadius: 8,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          Run Prediction Model
+        </button>
+      </div>
+    </div>
   );
 }
-
-const btn = {
-  marginTop: 20,
-  padding: "10px 16px",
-  background: "#38bdf8",
-  border: "none",
-  borderRadius: 6,
-};
-
-const resultBox = {
-  marginTop: 16,
-  background: "#020617",
-  padding: 16,
-  borderRadius: 8,
-  color: "#e5e7eb",
-};
