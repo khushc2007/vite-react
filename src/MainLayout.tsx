@@ -4,7 +4,7 @@ import Sidebar from "./components/Sidebar";
 import Home from "./pages/Home";
 import LiveDashboard from "./pages/LiveDashboard";
 import History from "./pages/History";
-import Applications from "./pages/Applications";
+import Applications from "./pages/applications/Applications";
 import Settings from "./pages/Settings";
 
 type Props = {
