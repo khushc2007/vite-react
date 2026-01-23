@@ -1,39 +1,41 @@
-interface Props {
-  title: string;
-  current: number;
-  average: number;
-  onClick: () => void;
-}
+import { Reading } from "../App";
 
-export default function MetricCard({ title, value, onClick }: any) {
+export default function MetricCard({
+  label,
+  value,
+  readings,
+  metric,
+  onClick,
+}: {
+  label: string;
+  value: number;
+  readings: Reading[];
+  metric: "ph" | "tds" | "turbidity";
+  onClick: () => void;
+}) {
+  const avg =
+    readings.reduce((a, r) => a + (r as any)[metric], 0) / readings.length;
+
+  const deviation = ((value - avg) / avg) * 100;
+
   return (
-    <div
-      onClick={onClick}
-      style={{
-        flex: 1,
-        background: "#020617",
-        border: "1px solid #1e293b",
-        borderRadius: 12,
-        padding: 20,
-        cursor: "pointer",
-      }}
-    >
-      <h3 style={{ color: "#94a3b8" }}>{title}</h3>
-      <div style={{ fontSize: 28, color: "#38bdf8" }}>
-        {value ?? "--"}
-      </div>
-      <div style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>
-        Updated every 10 seconds
+    <div onClick={onClick} style={card}>
+      <h3>{label}</h3>
+      <div style={{ fontSize: 28 }}>{value.toFixed(2)}</div>
+
+      <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 8 }}>
+        Updated every 10s <br />
+        {deviation >= 0 ? "+" : ""}
+        {deviation.toFixed(2)}% from avg ({avg.toFixed(2)})
       </div>
     </div>
   );
 }
 
 const card = {
-  flex: 1,
   background: "#111827",
-  padding: 20,
+  border: "1px solid #1f2937",
   borderRadius: 14,
-  color: "#e5e7eb",
+  padding: 20,
   cursor: "pointer",
 };
