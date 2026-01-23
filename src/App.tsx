@@ -1,6 +1,6 @@
 import { useState } from "react";
 import MainLayout from "./MainLayout";
-import Login from "./login";
+import Login from "./pages/login";
 
 /**
  * Central page union type
