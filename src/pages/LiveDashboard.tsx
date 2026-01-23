@@ -1,77 +1,98 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import MetricCard from "../components/MetricCard";
 import DataTable from "../components/DataTable";
+import { Reading } from "../App";
 
-interface Props {
-  openChart: (key: string) => void;
-}
+const MAX_ROWS = 30;
+const INTERVAL_SECONDS = 10;
+const MIN_FOR_PREDICTION = 15;
 
-export default function LiveDashboard({ openChart }: Props) {
-  const [data, setData] = useState<any[]>([]);
-
-  // Mock live data every 10 seconds
+export default function LiveDashboard({
+  readings,
+  setReadings,
+  openChart,
+}: {
+  readings: Reading[];
+  setReadings: React.Dispatch<React.SetStateAction<Reading[]>>;
+  openChart: (k: "ph" | "tds" | "turbidity") => void;
+}) {
   useEffect(() => {
-    const interval = setInterval(() => {
-      const point = {
-        time: new Date().toLocaleTimeString(),
-        ph: +(7 + Math.random()).toFixed(2),
-        tds: Math.floor(300 + Math.random() * 200),
-        turbidity: +(2 + Math.random()).toFixed(2),
-      };
-      setData((prev) => [...prev.slice(-20), point]);
-    }, 10000);
+    const id = setInterval(() => {
+      setReadings(prev => {
+        const next: Reading = {
+          sl: prev.length + 1,
+          time: new Date().toLocaleTimeString(),
+          ph: 7 + Math.random(),
+          tds: 300 + Math.random() * 20,
+          turbidity: 3 + Math.random(),
+        };
+        return [...prev, next].slice(-MAX_ROWS);
+      });
+    }, INTERVAL_SECONDS * 1000);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(id);
   }, []);
 
-  const latest = data[data.length - 1] || {};
+  const latest = readings[readings.length - 1];
 
   return (
-    <div>
-      <h1 style={{ color: "#e5e7eb", marginBottom: 20 }}>
-        Live Dashboard
-      </h1>
+    <>
+      <h2 style={{ color: "#e5e7eb" }}>Live Dashboard</h2>
 
-      {/* CARDS */}
-      <div style={{ display: "flex", gap: 16 }}>
-        <MetricCard
-          title="pH"
-          value={latest.ph}
-          onClick={() => openChart("ph")}
-        />
-        <MetricCard
-          title="TDS"
-          value={latest.tds}
-          onClick={() => openChart("tds")}
-        />
-        <MetricCard
-          title="Turbidity"
-          value={latest.turbidity}
-          onClick={() => openChart("turbidity")}
-        />
-      </div>
+      {latest && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+          <MetricCard
+            label="pH"
+            value={latest.ph}
+            readings={readings}
+            metric="ph"
+            onClick={() => openChart("ph")}
+          />
+          <MetricCard
+            label="TDS"
+            value={latest.tds}
+            readings={readings}
+            metric="tds"
+            onClick={() => openChart("tds")}
+          />
+          <MetricCard
+            label="Turbidity"
+            value={latest.turbidity}
+            readings={readings}
+            metric="turbidity"
+            onClick={() => openChart("turbidity")}
+          />
+        </div>
+      )}
 
-      {/* TABLE */}
-      <div style={{ marginTop: 30 }}>
-        <h2 style={{ color: "#cbd5f5" }}>Live Readings</h2>
-        <DataTable rows={data} />
-      </div>
+      <DataTable readings={readings} />
 
-      {/* PREDICTION BUTTON */}
-      <div style={{ marginTop: 30 }}>
-        <button
-          style={{
-            padding: "12px 24px",
-            background: "#38bdf8",
-            border: "none",
-            borderRadius: 8,
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          Run Prediction Model
-        </button>
-      </div>
-    </div>
+      <button
+        disabled={readings.length < MIN_FOR_PREDICTION}
+        onClick={() => runPrediction(readings, setReadings)}
+        style={{ marginTop: 20 }}
+      >
+        Run Prediction Model
+      </button>
+    </>
   );
+}
+
+function runPrediction(readings: Reading[], setReadings: any) {
+  if (readings.length < 15) return;
+
+  const name = prompt("Enter iteration name");
+  if (!name) return;
+
+  const avg = {
+    ph: readings.reduce((a, r) => a + r.ph, 0) / readings.length,
+    tds: readings.reduce((a, r) => a + r.tds, 0) / readings.length,
+    turbidity: readings.reduce((a, r) => a + r.turbidity, 0) / readings.length,
+  };
+
+  const history = JSON.parse(localStorage.getItem("history") || "[]");
+  history.unshift({ name, avg, time: new Date().toISOString() });
+  localStorage.setItem("history", JSON.stringify(history));
+
+  setReadings([]);
 }
