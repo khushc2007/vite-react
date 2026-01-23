@@ -5,46 +5,38 @@ interface Props {
   setActivePage: (p: Page) => void;
 }
 
-export default function Sidebar({
-  activePage,
-  setActivePage,
-}: Props) {
+export default function Sidebar({ page, setPage }: any) {
   return (
-    <div style={sidebar}>
-      <h2 style={{ color: "#38bdf8", marginBottom: 20 }}>
-        IoTWQMS
-      </h2>
+    <div style={{ width: 240, padding: 20, background: "#020617" }}>
+      <h2 style={{ color: "var(--accent)" }}>IoTWQMS</h2>
 
-      {/* HOME */}
-      <NavItem
-        label="Home"
-        active={activePage === "home"}
-        onClick={() => setActivePage("home")}
-      />
+      <div onClick={() => setPage("home")} style={item(page === "home")}>Home</div>
 
-      {/* SUB SECTIONS */}
-      <div style={{ marginLeft: 16, marginTop: 10 }}>
-        <SubItem
-          label="Live Dashboard"
-          active={activePage === "live"}
-          onClick={() => setActivePage("live")}
-        />
-
-        <SubItem
-          label="History"
-          active={activePage === "history"}
-          onClick={() => setActivePage("history")}
-        />
-
-        <SubItem
-          label="Settings"
-          active={activePage === "settings"}
-          onClick={() => setActivePage("settings")}
-        />
+      <div style={{ marginLeft: 12 }}>
+        <div onClick={() => setPage("live")} style={sub(page === "live")}>Live Dashboard</div>
+        <div onClick={() => setPage("history")} style={sub(page === "history")}>History</div>
+        <div onClick={() => setPage("applications")} style={sub(page === "applications")}>
+          Real-World Applications
+        </div>
+        <div onClick={() => setPage("settings")} style={sub(page === "settings")}>Settings</div>
       </div>
     </div>
   );
 }
+
+const item = (a: boolean) => ({
+  padding: "10px",
+  fontWeight: 600,
+  cursor: "pointer",
+  background: a ? "#1e293b" : "transparent"
+});
+
+const sub = (a: boolean) => ({
+  padding: "8px",
+  fontSize: 14,
+  cursor: "pointer",
+  background: a ? "#0f172a" : "transparent"
+});
 
 function NavItem({
   label,
