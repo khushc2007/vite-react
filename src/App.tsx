@@ -10,7 +10,7 @@ import Settings from "./pages/Settings";
 import History from "./pages/History";
 
 /* Layout */
-import MainLayout from "./layout/MainLayout";
+import MainLayout from "./MainLayout";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
