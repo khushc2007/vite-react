@@ -1,41 +1,32 @@
-import { Reading } from "../App";
-
 export default function MetricCard({
-  label,
-  value,
-  readings,
-  metric,
-  onClick,
-}: {
-  label: string;
-  value: number;
-  readings: Reading[];
-  metric: "ph" | "tds" | "turbidity";
-  onClick: () => void;
-}) {
-  const avg =
-    readings.reduce((a, r) => a + (r as any)[metric], 0) / readings.length;
-
-  const deviation = ((value - avg) / avg) * 100;
+  title,
+  rows,
+  valueKey,
+  avg,
+}: any) {
+  const current = rows.length ? rows[rows.length - 1][valueKey] : "--";
+  const deviation =
+    avg && current !== "--"
+      ? (((current - avg) / avg) * 100).toFixed(2)
+      : "0";
 
   return (
-    <div onClick={onClick} style={card}>
-      <h3>{label}</h3>
-      <div style={{ fontSize: 28 }}>{value.toFixed(2)}</div>
-
-      <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 8 }}>
-        Updated every 10s <br />
-        {deviation >= 0 ? "+" : ""}
-        {deviation.toFixed(2)}% from avg ({avg.toFixed(2)})
-      </div>
+    <div
+      style={{
+        background: "#052e16",
+        padding: 20,
+        borderRadius: 12,
+        width: 180,
+        color: "white",
+      }}
+    >
+      <h4>{title}</h4>
+      <h2>{current}</h2>
+      <small>
+        Avg: {avg} | {deviation}% from avg  
+        <br />
+        Updated every 4s
+      </small>
     </div>
   );
 }
-
-const card = {
-  background: "#111827",
-  border: "1px solid #1f2937",
-  borderRadius: 14,
-  padding: 20,
-  cursor: "pointer",
-};
