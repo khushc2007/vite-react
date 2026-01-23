@@ -5,7 +5,10 @@ import { useState } from "react";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import LiveDashboard from "./pages/LiveDashboard";
-import Applications from "./pages/applications/Applications";
+import ApplicationsHome from "./pages/applications/Applications";
+import Aquaculture from "./pages/applications/Aquaculture";
+import Agriculture from "./pages/applications/Agriculture";
+import Industrial from "./pages/applications/Industrial";
 import Settings from "./pages/Settings";
 import History from "./pages/History";
 
