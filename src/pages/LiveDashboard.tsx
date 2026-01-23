@@ -4,31 +4,31 @@ import DataTable from "../components/DataTable";
 import { Reading } from "../App";
 
 const MAX_ROWS = 30;
-const INTERVAL_SECONDS = 10;
-const MIN_FOR_PREDICTION = 15;
 
 export default function LiveDashboard({
   readings,
   setReadings,
   openChart,
+  openSave,
 }: {
   readings: Reading[];
-  setReadings: React.Dispatch<React.SetStateAction<Reading[]>>;
-  openChart: (k: "ph" | "tds" | "turbidity") => void;
+  setReadings: any;
+  openChart: any;
+  openSave: () => void;
 }) {
   useEffect(() => {
     const id = setInterval(() => {
-      setReadings(prev => {
+      setReadings((prev: Reading[]) => {
         const next: Reading = {
           sl: prev.length + 1,
           time: new Date().toLocaleTimeString(),
-          ph: 7 + Math.random(),
-          tds: 300 + Math.random() * 20,
-          turbidity: 3 + Math.random(),
+          ph: +(7 + Math.random()).toFixed(2),
+          tds: +(300 + Math.random() * 200).toFixed(1),
+          turbidity: +(2 + Math.random()).toFixed(2),
         };
         return [...prev, next].slice(-MAX_ROWS);
       });
-    }, INTERVAL_SECONDS * 1000);
+    }, 10000);
 
     return () => clearInterval(id);
   }, []);
@@ -37,62 +37,31 @@ export default function LiveDashboard({
 
   return (
     <>
-      <h2 style={{ color: "#e5e7eb" }}>Live Dashboard</h2>
+      <h1>Live Dashboard</h1>
 
       {latest && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-          <MetricCard
-            label="pH"
-            value={latest.ph}
-            readings={readings}
-            metric="ph"
-            onClick={() => openChart("ph")}
-          />
-          <MetricCard
-            label="TDS"
-            value={latest.tds}
-            readings={readings}
-            metric="tds"
-            onClick={() => openChart("tds")}
-          />
-          <MetricCard
-            label="Turbidity"
-            value={latest.turbidity}
-            readings={readings}
-            metric="turbidity"
-            onClick={() => openChart("turbidity")}
-          />
+        <div style={{ display: "flex", gap: 16 }}>
+          <MetricCard label="pH" metric="ph" readings={readings} onClick={openChart} />
+          <MetricCard label="TDS" metric="tds" readings={readings} onClick={openChart} />
+          <MetricCard label="Turbidity" metric="turbidity" readings={readings} onClick={openChart} />
         </div>
       )}
 
       <DataTable readings={readings} />
 
       <button
-        disabled={readings.length < MIN_FOR_PREDICTION}
-        onClick={() => runPrediction(readings, setReadings)}
+        onClick={openSave}
+        disabled={readings.length < MAX_ROWS}
         style={{ marginTop: 20 }}
       >
         Run Prediction Model
       </button>
+
+      {readings.length < MAX_ROWS && (
+        <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
+          Prediction available after {MAX_ROWS} readings
+        </p>
+      )}
     </>
   );
-}
-
-function runPrediction(readings: Reading[], setReadings: any) {
-  if (readings.length < 15) return;
-
-  const name = prompt("Enter iteration name");
-  if (!name) return;
-
-  const avg = {
-    ph: readings.reduce((a, r) => a + r.ph, 0) / readings.length,
-    tds: readings.reduce((a, r) => a + r.tds, 0) / readings.length,
-    turbidity: readings.reduce((a, r) => a + r.turbidity, 0) / readings.length,
-  };
-
-  const history = JSON.parse(localStorage.getItem("history") || "[]");
-  history.unshift({ name, avg, time: new Date().toISOString() });
-  localStorage.setItem("history", JSON.stringify(history));
-
-  setReadings([]);
 }
