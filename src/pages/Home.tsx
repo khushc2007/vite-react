@@ -1,4 +1,45 @@
 import { Page } from "../App";
+import { useNavigate } from "react-router-dom";
+
+const cardStyle = {
+  padding: "40px",
+  borderRadius: "16px",
+  background: "rgba(255,255,255,0.08)",
+  cursor: "pointer",
+  textAlign: "center" as const,
+  fontSize: "18px",
+};
+
+export default function Home() {
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <h1 style={{ marginBottom: "30px" }}>Home</h1>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "24px",
+        }}
+      >
+        <div style={cardStyle} onClick={() => navigate("/live")}>
+          Live Dashboard
+        </div>
+
+        <div style={cardStyle}>History</div>
+
+        <div style={cardStyle} onClick={() => navigate("/applications")}>
+          Real-World Applications
+        </div>
+
+        <div style={cardStyle}>Settings</div>
+      </div>
+    </>
+  );
+}
+
 
 export default function Home({ navigate }: { navigate: (p: string) => void }) {
   const tileStyle = {
