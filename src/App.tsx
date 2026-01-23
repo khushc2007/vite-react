@@ -1,31 +1,56 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState } from "react";
-import MainLayout from "./MainLayout";
-import Login from "./pages/login";
 
-/**
- * Central page union type
- * This MUST exist only once in the app
- */
-export type Page =
-  | "home"
-  | "live"
-  | "history"
-  | "applications"
-  | "settings";
+/* Pages */
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import LiveDashboard from "./pages/LiveDashboard";
+import Applications from "./pages/Applications";
+import Settings from "./pages/Settings";
+import History from "./pages/History";
+
+/* Layout */
+import MainLayout from "./layout/MainLayout";
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [page, setPage] = useState<Page>("home");
-
-  // Login gate
-  if (!isLoggedIn) {
-    return <Login onLogin={() => setIsLoggedIn(true)} />;
-  }
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   return (
-    <MainLayout
-      page={page}
-      setPage={setPage}
-    />
+    <BrowserRouter>
+      <Routes>
+        {/* ---------------- LOGIN ---------------- */}
+        <Route
+          path="/login"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/" replace />
+            ) : (
+              <Login onLogin={() => setIsAuthenticated(true)} />
+            )
+          }
+        />
+
+        {/* ------------- PROTECTED ROUTES ------------- */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              <MainLayout />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        >
+          <Route index element={<Home />} />
+          <Route path="live-dashboard" element={<LiveDashboard />} />
+          <Route path="applications" element={<Applications />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="history" element={<History />} />
+        </Route>
+
+        {/* ------------- FALLBACK ------------- */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
