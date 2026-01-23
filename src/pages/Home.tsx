@@ -1,18 +1,24 @@
 import { Page } from "../App";
 
-export default function Home({ navigate }: { navigate: (p: Page) => void }) {
-  return (
-    <>
-      <h1 style={{ color: "#e5e7eb", marginBottom: 30 }}>
-        Water Quality Monitoring System
-      </h1>
+export default function Home({ navigate }: { navigate: (p: string) => void }) {
+  const tileStyle = {
+    background: "#111827",
+    border: "1px solid #1f2933",
+    borderRadius: 16,
+    padding: 40,
+    cursor: "pointer",
+    fontSize: 22,
+    fontWeight: 600,
+    color: "#e5e7eb",
+    textAlign: "center" as const,
+  };
 
-      <div style={grid}>
-        <HomeCard title="Live Dashboard" onClick={() => navigate("live")} />
-        <HomeCard title="History" onClick={() => navigate("history")} />
-        <HomeCard title="Settings" onClick={() => navigate("settings")} />
-      </div>
-    </>
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+      <div style={tileStyle} onClick={() => navigate("live")}>Live Dashboard</div>
+      <div style={tileStyle} onClick={() => navigate("history")}>History</div>
+      <div style={tileStyle} onClick={() => navigate("settings")}>Settings</div>
+    </div>
   );
 }
 
