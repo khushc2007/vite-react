@@ -52,11 +52,20 @@ export default function App() {
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
-      <Sidebar activePage={page} setActivePage={setPage} />
-      <div style={{ flex: 1, padding: 24, background: "#020617" }}>
-        {renderPage()}
-      </div>
+  <div style={{ display: "flex", height: "100vh", background: "#0b1220" }}>
+    <Sidebar activePage={page} setActivePage={setPage} />
+
+    {/* MAIN CONTENT */}
+    <div
+      style={{
+        flex: 1,
+        padding: 24,
+        marginLeft: 12, // separation
+        background: "#0f172a", // less dark than before
+        borderRadius: "16px 0 0 16px", // clean edge
+      }}
+    >
+      {renderPage()}
     </div>
-  );
-}
+  </div>
+);
