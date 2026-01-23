@@ -5,21 +5,26 @@ interface Props {
   onClick: () => void;
 }
 
-export default function MetricCard({
-  title,
-  current,
-  average,
-  onClick,
-}: Props) {
-  const diff = (((current - average) / average) * 100) || 0;
-
+export default function MetricCard({ title, value, onClick }: any) {
   return (
-    <div onClick={onClick} style={card}>
-      <h4>{title}</h4>
-      <h1 style={{ color: "#38bdf8" }}>{current}</h1>
-      <small>
-        Avg: {average.toFixed(2)} | {diff.toFixed(1)}%
-      </small>
+    <div
+      onClick={onClick}
+      style={{
+        flex: 1,
+        background: "#020617",
+        border: "1px solid #1e293b",
+        borderRadius: 12,
+        padding: 20,
+        cursor: "pointer",
+      }}
+    >
+      <h3 style={{ color: "#94a3b8" }}>{title}</h3>
+      <div style={{ fontSize: 28, color: "#38bdf8" }}>
+        {value ?? "--"}
+      </div>
+      <div style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>
+        Updated every 10 seconds
+      </div>
     </div>
   );
 }
