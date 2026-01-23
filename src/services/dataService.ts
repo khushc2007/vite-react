@@ -1,19 +1,35 @@
+// src/services/dataService.ts
+
 export type Reading = {
+  sl: number;
   time: string;
   ph: number;
   tds: number;
   turbidity: number;
 };
 
-let readings: Reading[] = [];
-let history: any[] = [];
+export type Iteration = {
+  name: string;
+  createdAt: string;
+  readings: Reading[];
+};
 
-export function addReading(r: Reading) {
-  if (readings.length >= 10) return;
-  readings.push(r);
+let readings: Reading[] = [];
+let history: Iteration[] = [];
+
+const MAX_ROWS = 10;
+
+/* ---------- LIVE DATA ---------- */
+export function addReading(r: Omit<Reading, "sl">) {
+  if (readings.length >= MAX_ROWS) return;
+
+  readings.push({
+    sl: readings.length + 1,
+    ...r,
+  });
 }
 
-export function getReadings() {
+export function getReadings(): Reading[] {
   return readings;
 }
 
@@ -21,10 +37,20 @@ export function clearReadings() {
   readings = [];
 }
 
-export function saveIteration(iteration: any) {
-  history.push(iteration);
+/* ---------- HISTORY ---------- */
+export function saveIteration(name: string) {
+  history.push({
+    name,
+    createdAt: new Date().toLocaleString(),
+    readings: [...readings],
+  });
 }
 
-export function getHistory() {
+export function getHistory(): Iteration[] {
   return history;
+}
+
+/* ---------- HELPERS ---------- */
+export function canRunPrediction(): boolean {
+  return readings.length === MAX_ROWS;
 }
