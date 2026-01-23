@@ -1,30 +1,63 @@
-// src/layouts/MainLayout.tsx
+import { Page } from "./App";
+import Sidebar from "./components/Sidebar";
 
-import Sidebar from "../components/Sidebar";
+import Home from "./pages/Home";
+import LiveDashboard from "./pages/LiveDashboard";
+import History from "./pages/History";
+import Applications from "./pages/Applications";
+import Settings from "./pages/Settings";
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
+type Props = {
+  page: Page;
+  setPage: (page: Page) => void;
+};
+
+export default function MainLayout({ page, setPage }: Props) {
+  const renderPage = () => {
+    switch (page) {
+      case "home":
+        return <Home setPage={setPage} />;
+
+      case "live":
+        return <LiveDashboard />;
+
+      case "history":
+        return <History />;
+
+      case "applications":
+        return <Applications />;
+
+      case "settings":
+        return <Settings />;
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <div
       style={{
         display: "flex",
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #1f2a36, #2f4f6f)",
-        color: "#eaeaea",
+        height: "100vh",
+        backgroundColor: "#0b1220",
+        color: "#e5e7eb",
       }}
     >
-      <Sidebar />
+      <Sidebar page={page} setPage={setPage} />
+
       <main
         style={{
           flex: 1,
-          padding: "24px",
+          padding: "28px",
           marginLeft: "12px",
-          background: "rgba(255,255,255,0.03)",
+          backgroundColor: "#0f172a",
           borderRadius: "12px",
+          overflow: "auto",
         }}
       >
-        {children}
+        {renderPage()}
       </main>
     </div>
   );
 }
-
