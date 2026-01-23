@@ -5,48 +5,52 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  ResponsiveContainer,
 } from "recharts";
+import { Reading } from "../App";
 
-interface Props {
-  title: string;
-  data: any[];
-  back: () => void;
-}
-
-export default function ChartModal({ title, data, back }: Props) {
+export default function ChartModal({
+  readings,
+  metric,
+  onClose,
+}: {
+  readings: Reading[];
+  metric: "ph" | "tds" | "turbidity";
+  onClose: () => void;
+}) {
   return (
-    <div>
-      <button onClick={back}>← Back</button>
+    <div style={overlay}>
+      <div style={modal}>
+        <h3>{metric.toUpperCase()} vs Time</h3>
 
-      <h2 style={{ color: "#e5e7eb", marginBottom: 20 }}>
-        {title} over Time
-      </h2>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={readings}>
+            <CartesianGrid stroke="#334155" />
+            <XAxis dataKey="time" label={{ value: "Time (10s)", position: "insideBottom", fill: "#cbd5f5" }} />
+            <YAxis label={{ value: metric, angle: -90, position: "insideLeft", fill: "#cbd5f5" }} />
+            <Tooltip />
+            <Line dataKey={metric} stroke="#38bdf8" dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
 
-      <LineChart width={800} height={400} data={data}>
-        <CartesianGrid stroke="#334155" />
-        <XAxis
-          dataKey="time"
-          label={{
-            value: "Time (10s interval)",
-            position: "insideBottom",
-            fill: "#94a3b8",
-          }}
-        />
-        <YAxis
-          label={{
-            value: title,
-            angle: -90,
-            position: "insideLeft",
-            fill: "#94a3b8",
-          }}
-        />
-        <Tooltip />
-        <Line
-          type="monotone"
-          dataKey={title.toLowerCase()}
-          stroke="#38bdf8"
-        />
-      </LineChart>
+        <button onClick={onClose}>Close</button>
+      </div>
     </div>
   );
 }
+
+const overlay = {
+  position: "fixed" as const,
+  inset: 0,
+  background: "rgba(0,0,0,0.7)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+};
+
+const modal = {
+  background: "#020617",
+  padding: 20,
+  borderRadius: 12,
+  width: "70%",
+};
