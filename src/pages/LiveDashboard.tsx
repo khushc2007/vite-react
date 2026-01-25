@@ -500,7 +500,7 @@ const secondaryButtonStyle = {
     </button>
   </div>
 )}
-      )}
+      
 
       {activeMetric && (
         <ChartModal
