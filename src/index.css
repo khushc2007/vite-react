@@ -1,18 +1,37 @@
-:root {
-  --bg-main: #0e1621;
-  --bg-panel: #162235;
-  --bg-surface: #1c2b42;
-  --bg-surface-alt: #223552;
+/* ===============================
+   GLOBAL UI STYLES (Water IQ)
+================================ */
 
-  --border-soft: #2f4565;
-  --text-main: #e6edf7;
-  --text-muted: #9fb3c8;
-  --accent: #4da3ff;
+.btn-green {
+  padding: 12px 22px;
+  border-radius: 14px;
+  background: linear-gradient(135deg,#22c55e,#16a34a);
+  color: #ffffff;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-body {
-  margin: 0;
-  background: var(--bg-main);
-  color: var(--text-main);
-  font-family: system-ui, sans-serif;
+.btn-green:hover {
+  opacity: 0.9;
+}
+
+.neon-box {
+  margin-top: 24px;
+  padding: 22px;
+  border-radius: 14px;
+  background: #052e16;
+  border: 1px solid #22c55e;
+  color: #e5e7eb;
+}
+
+.iteration-input {
+  width: 100%;
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 10px;
+  border: 1px solid #22c55e;
+  background: #020617;
+  color: white;
+  font-size: 14px;
 }
