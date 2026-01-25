@@ -15,30 +15,33 @@ type Props = {
 };
 
 export default function ChartModal({ metric, rows, onClose }: Props) {
+  // 🛡 HARD GUARD
+  if (!rows || rows.length === 0) return null;
+
   const metricLabel =
-    metric === "ph"
-      ? "pH"
-      : metric === "tds"
-      ? "TDS"
-      : "Turbidity";
+    metric === "ph" ? "pH" : metric === "tds" ? "TDS" : "Turbidity";
+
+  // 🛡 NORMALIZE + FILTER ONCE
+  const safeData = rows
+    .map((r) => ({
+      time: r?.time ?? "",
+      value: Number(r?.[metric]),
+    }))
+    .filter((d) => !isNaN(d.value));
+
+  if (safeData.length === 0) return null;
 
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
-        {/* Header */}
         <div style={headerStyle}>
-          <h2 style={{ margin: 0 }}>
-            {metricLabel} vs Time
-          </h2>
-          <button onClick={onClose} style={closeBtn}>
-            ✕
-          </button>
+          <h2 style={{ margin: 0 }}>{metricLabel} vs Time</h2>
+          <button onClick={onClose} style={closeBtn}>✕</button>
         </div>
 
-        {/* Chart */}
         <div style={{ height: 360 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={rows}>
+            <LineChart data={safeData}>
               <CartesianGrid stroke="#334155" strokeDasharray="4 4" />
               <XAxis
                 dataKey="time"
@@ -68,7 +71,7 @@ export default function ChartModal({ metric, rows, onClose }: Props) {
               />
               <Line
                 type="monotone"
-                dataKey={metric}
+                dataKey="value"
                 stroke="#22c55e"
                 strokeWidth={3}
                 dot={{ r: 4 }}
@@ -78,55 +81,10 @@ export default function ChartModal({ metric, rows, onClose }: Props) {
           </ResponsiveContainer>
         </div>
 
-        {/* Footer */}
         <p style={footerText}>
-          Live values sampled every 4 seconds.  
-          Closing this view will not reset data.
+          Live values sampled every 4 seconds. Closing this view will not reset data.
         </p>
       </div>
     </div>
   );
 }
-
-/* ===================== STYLES ===================== */
-
-const overlayStyle: React.CSSProperties = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,0.65)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1000,
-};
-
-const modalStyle: React.CSSProperties = {
-  width: "85%",
-  maxWidth: "900px",
-  background: "#0f172a",
-  padding: "24px",
-  borderRadius: "14px",
-  color: "#e5e7eb",
-  boxShadow: "0 25px 60px rgba(0,0,0,0.4)",
-};
-
-const headerStyle: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: "12px",
-};
-
-const closeBtn: React.CSSProperties = {
-  background: "transparent",
-  border: "none",
-  color: "#e5e7eb",
-  fontSize: "22px",
-  cursor: "pointer",
-};
-
-const footerText: React.CSSProperties = {
-  marginTop: "10px",
-  fontSize: "13px",
-  color: "#94a3b8",
-};
