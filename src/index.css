@@ -1,37 +1,29 @@
-/* ===============================
-   GLOBAL UI STYLES (Water IQ)
-================================ */
-
-.btn-green {
-  padding: 12px 22px;
-  border-radius: 14px;
-  background: linear-gradient(135deg,#22c55e,#16a34a);
-  color: #ffffff;
-  border: none;
-  font-weight: 700;
-  cursor: pointer;
+/* ===== GLOBAL RESET (SAFE) ===== */
+* {
+  box-sizing: border-box;
 }
 
-.btn-green:hover {
-  opacity: 0.9;
+body {
+  margin: 0;
+  padding: 0;
+  background: #020617; /* dark slate */
+  color: #e5e7eb; /* readable light text */
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
-.neon-box {
-  margin-top: 24px;
-  padding: 22px;
-  border-radius: 14px;
-  background: #052e16;
-  border: 1px solid #22c55e;
-  color: #e5e7eb;
+/* DO NOT style buttons globally */
+button {
+  font-family: inherit;
 }
 
-.iteration-input {
-  width: 100%;
-  padding: 12px;
-  margin: 12px 0;
-  border-radius: 10px;
-  border: 1px solid #22c55e;
-  background: #020617;
-  color: white;
-  font-size: 14px;
+/* DO NOT style headings globally */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: inherit;
+}
+
+/* DO NOT style links globally */
+a {
+  color: inherit;
+  text-decoration: none;
 }
