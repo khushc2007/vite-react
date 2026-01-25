@@ -8,7 +8,8 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import { toPng } from "html-to-image";
+import * as htmlToImage from 
+  "html-to-image";
 import { useRef } from "react";
 
 type Props = {
