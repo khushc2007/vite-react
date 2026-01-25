@@ -2,7 +2,12 @@ import { useEffect, useState, useRef } from "react";
 import MetricCard from "../components/MetricCard";
 import DatasetTable from "../components/DatasetTable";
 import ChartModal from "../components/ChartModal";
-import { saveIteration } from "../store/IterationStore";
+
+import {
+  saveIteration,
+  clearIterations,
+  exportIterations,
+} from "../store/IterationStore";
 
 const BACKEND_ANALYZE_URL =
   "https://water-quality-backend-8-ffv5.onrender.com/analyze-water";
@@ -23,24 +28,10 @@ type Row = {
 
 type Mode = "idle" | "simulation" | "live";
 
-type Iteration = {
-  id: string;
-  timestamp: string;
-  mode: Mode;
-  rows: Row[];
-  avg: {
-    ph: number;
-    turbidity: number;
-    tds: number;
-  };
-  prediction: any;
-};
-
 export default function LiveDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
-  const [activeMetric, setActiveMetric] = useState<
-    "ph" | "tds" | "turbidity" | null
-  >(null);
+  const [activeMetric, setActiveMetric] =
+    useState<"ph" | "tds" | "turbidity" | null>(null);
   const [prediction, setPrediction] = useState<any>(null);
   const [mode, setMode] = useState<Mode>("idle");
 
@@ -137,8 +128,7 @@ export default function LiveDashboard() {
           "simulation"
         );
 
-        if (!simulated) return prev;
-        return [...prev, simulated];
+        return simulated ? [...prev, simulated] : prev;
       });
     }, INTERVAL_MS);
 
@@ -159,12 +149,12 @@ export default function LiveDashboard() {
 
         const raw = await res.json();
         const normalized = normalizeRow(raw, "live");
-        if (!normalized) return;
 
-        setRows((prev) => {
-          if (prev.length >= MAX_ROWS) return prev;
-          return [...prev, normalized];
-        });
+        if (normalized) {
+          setRows((prev) =>
+            prev.length >= MAX_ROWS ? prev : [...prev, normalized]
+          );
+        }
       } catch {
         setMode("simulation");
       }
@@ -174,78 +164,51 @@ export default function LiveDashboard() {
   }, [mode, rows.length]);
 
   /* ===============================
-     SAVE ITERATION (LAYER 2)
-  ================================ */
-  const saveIteration = (predictionResult: any) => {
-    const iteration: Iteration = {
-      id: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
-      mode,
-      rows,
-      avg,
-      prediction: predictionResult,
-    };
-
-    const existing =
-      JSON.parse(localStorage.getItem("waterIQ_iterations") || "[]") || [];
-
-    localStorage.setItem(
-      "waterIQ_iterations",
-      JSON.stringify([...existing, iteration])
-    );
-  };
-
-  /* ===============================
-     RUN PREDICTION
+     RUN PREDICTION + SAVE ITERATION
   ================================ */
   const runPrediction = async () => {
     if (!rows.length) return;
 
-    try {
-      const res = await fetch(BACKEND_ANALYZE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(avg),
-      });
+    const res = await fetch(BACKEND_ANALYZE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(avg),
+    });
 
-      const result = await res.json();
-      setPrediction(result);
-      const iteration = {
-  id: crypto.randomUUID(),
-  name: `Iteration ${new Date().toLocaleTimeString()}`,
-  timestamp: new Date().toISOString(),
-  mode,
-  rows,
-  avg,
-  prediction: {
-    reusable: result.reusable,
-    tank: result.tank,
-    filtrationBracket: result.filtrationBracket,
-  },
-};
+    const result = await res.json();
+    setPrediction(result);
 
-saveIteration(iteration);
-
-      saveIteration(result); // 🔐 LAYER 2 HOOK
-    } catch (err) {
-      console.error("Prediction failed", err);
-    }
+    saveIteration({
+      id: crypto.randomUUID(),
+      name: `Iteration ${new Date().toLocaleTimeString()}`,
+      timestamp: new Date().toISOString(),
+      mode,
+      rows,
+      avg,
+      prediction: result,
+    });
   };
 
   return (
     <div style={{ padding: 24 }}>
+      {/* HEADER */}
       <div
         onClick={secretClick}
         style={{ display: "flex", justifyContent: "space-between" }}
       >
         <h1>Live Dashboard</h1>
 
-        <div style={{ display: "flex", gap: 12 }}>
-          <button onClick={() => setMode("simulation")}>Deploy Simulation</button>
-          <button onClick={() => setMode("live")}>Deploy Live Sensors</button>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button style={btnGreen} onClick={() => setMode("simulation")}>
+            Deploy Simulation
+          </button>
+          <button style={btnBlue} onClick={() => setMode("live")}>
+            Deploy Live Sensors
+          </button>
         </div>
       </div>
 
+      {/* METRIC CARDS */}
       <div style={{ display: "flex", gap: 16, margin: "24px 0" }}>
         <MetricCard title="pH" valueKey="ph" rows={rows} avg={avg.ph}
           onClick={() => rows.length && setActiveMetric("ph")} />
@@ -259,18 +222,28 @@ saveIteration(iteration);
       <DatasetTable rows={rows} />
 
       {rows.length === MAX_ROWS && (
-        <button onClick={runPrediction} style={{ marginTop: 20 }}>
+        <button style={btnGreenLarge} onClick={runPrediction}>
           Run Prediction Model
         </button>
       )}
 
       {prediction && (
-        <div style={{ marginTop: 20 }}>
-          <p>Reusable: {prediction.reusable}</p>
-          <p>Tank: {prediction.tank}</p>
-          <p>Bracket: {prediction.filtrationBracket}</p>
+        <div style={predictionBox}>
+          <p><b>Reusable:</b> {prediction.reusable}</p>
+          <p><b>Tank:</b> {prediction.tank}</p>
+          <p><b>Filtration Bracket:</b> {prediction.filtrationBracket}</p>
         </div>
       )}
+
+      {/* ITERATION CONTROLS */}
+      <div style={{ marginTop: 20, display: "flex", gap: 12 }}>
+        <button style={btnDanger} onClick={clearIterations}>
+          Delete All Iterations
+        </button>
+        <button style={btnSecondary} onClick={exportIterations}>
+          Export Iterations
+        </button>
+      </div>
 
       {activeMetric && (
         <ChartModal
@@ -282,3 +255,54 @@ saveIteration(iteration);
     </div>
   );
 }
+
+/* ===============================
+   STYLES
+=============================== */
+const btnGreen = {
+  padding: "10px 16px",
+  background: "#16a34a",
+  color: "#fff",
+  borderRadius: 8,
+  border: "none",
+  fontWeight: 600,
+};
+
+const btnBlue = {
+  ...btnGreen,
+  background: "#0284c7",
+};
+
+const btnGreenLarge = {
+  marginTop: 20,
+  padding: "14px 24px",
+  background: "#16a34a",
+  color: "#fff",
+  borderRadius: 10,
+  border: "none",
+  fontSize: 16,
+  fontWeight: 600,
+};
+
+const btnDanger = {
+  padding: "8px 14px",
+  background: "#7f1d1d",
+  color: "#fff",
+  borderRadius: 8,
+  border: "none",
+};
+
+const btnSecondary = {
+  padding: "8px 14px",
+  background: "#334155",
+  color: "#fff",
+  borderRadius: 8,
+  border: "none",
+};
+
+const predictionBox = {
+  marginTop: 16,
+  padding: 16,
+  borderRadius: 12,
+  background: "#052e16",
+};
