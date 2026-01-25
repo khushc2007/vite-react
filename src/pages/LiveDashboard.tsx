@@ -17,8 +17,7 @@ const BACKEND_LATEST_URL =
 ====================================================== */
 const INTERVAL_MS = 4000;
 const MAX_ROWS = 10;
-const clickCounter = useRef(0);
-const lastModeRef = useRef<Mode>("idle");
+
 
 /* ======================================================
    TYPES
@@ -240,6 +239,7 @@ export default function LiveDashboard() {
 
   const slCounter = useRef(1);
   const clickCounter = useRef(0);
+const lastModeRef = useRef<Mode>("idle");
    const primaryButtonStyle = {
   padding: "12px 20px",
   borderRadius: 12,
@@ -260,10 +260,12 @@ const secondaryButtonStyle = {
   cursor: "pointer",
 };
 
-  /* ======================================================
-     FALLBACK 1: URL FLAG
-  ====================================================== */
-  useEffect(() => {
+ /* ======================================================
+   FALLBACK SESSION (ALL MODES)
+====================================================== */
+
+/* 1️⃣ URL FLAG */
+useEffect(() => {
   const params = new URLSearchParams(window.location.search);
   const flag = params.get("live");
 
@@ -277,10 +279,9 @@ const secondaryButtonStyle = {
     lastModeRef.current = "simulation";
   }
 }, []);
-  /* ======================================================
-     FALLBACK 2: KEYBOARD
-  ====================================================== */
- useEffect(() => {
+
+/* 2️⃣ KEYBOARD SHORTCUTS */
+useEffect(() => {
   const handler = (e: KeyboardEvent) => {
     if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "l") {
       setMode("live");
@@ -297,10 +298,8 @@ const secondaryButtonStyle = {
   return () => window.removeEventListener("keydown", handler);
 }, []);
 
-  /* ======================================================
-     FALLBACK 3: CLICK COUNT
-  ====================================================== */
-  const secretClick = () => {
+/* 3️⃣ SECRET CLICK FALLBACK (HEADER ONLY) */
+const secretClick = () => {
   clickCounter.current += 1;
 
   if (clickCounter.current >= 10) {
@@ -310,10 +309,7 @@ const secondaryButtonStyle = {
   }
 };
 
-
-   /* ======================================================
-     FALLBACK 4: LIVE MODE AUTO FAILOVER (INTERVAL SAFETY)
-  ====================================================== */
+/* 4️⃣ LIVE MODE FAILOVER */
 useEffect(() => {
   if (mode !== "live") return;
   if (rows.length >= MAX_ROWS) return;
@@ -340,8 +336,7 @@ useEffect(() => {
           },
         ];
       });
-    } catch (err) {
-      // 🔥 HARD FAILOVER
+    } catch {
       setMode("simulation");
       lastModeRef.current = "simulation";
     }
@@ -349,8 +344,6 @@ useEffect(() => {
 
   return () => clearInterval(id);
 }, [mode, rows.length]);
-
-
    
   /* ======================================================
      AVERAGES
@@ -436,9 +429,7 @@ useEffect(() => {
     prediction && FILTRATION_LIBRARY[prediction.filtrationBracket];
 
   return (
-    <div style={{ padding: 24 }}
-       onClick={secretClick}
-       >
+    <div style={{ padding: 24 }}>
       {/* TOP BAR */}
       <div
         style={{
