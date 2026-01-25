@@ -238,6 +238,25 @@ export default function LiveDashboard() {
 
   const slCounter = useRef(1);
   const clickCounter = useRef(0);
+   const primaryButtonStyle = {
+  padding: "12px 20px",
+  borderRadius: 12,
+  background: "linear-gradient(135deg,#22c55e,#16a34a)",
+  color: "#ecfdf5",
+  border: "1px solid #22c55e",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const secondaryButtonStyle = {
+  padding: "12px 20px",
+  borderRadius: 12,
+  background: "#020617",
+  color: "#22c55e",
+  border: "1px solid #22c55e",
+  fontWeight: 700,
+  cursor: "pointer",
+};
 
   /* ======================================================
      FALLBACK 1: URL FLAG
@@ -365,9 +384,20 @@ export default function LiveDashboard() {
         <h1 onClick={secretClick}>Live Dashboard</h1>
 
         <div style={{ display: "flex", gap: 12 }}>
-          <button className="btn-green" onClick={() => setMode("simulation")}>
-            Deploy Simulation
-          </button>
+          <button
+  style={secondaryButtonStyle}
+  onClick={() => setMode("simulation")}
+>
+  Deploy Simulation
+</button>
+
+<button
+  style={secondaryButtonStyle}
+  onClick={() => setMode("live")}
+>
+  Deploy Live Sensors
+</button>
+
           <button className="btn-green" onClick={() => setMode("live")}>
             Deploy Live Sensors
           </button>
@@ -389,36 +419,89 @@ export default function LiveDashboard() {
 
       {rows.length === MAX_ROWS && (
         <button
-          className="btn-green"
-          style={{ marginTop: 24, width: "100%", fontSize: 18 }}
-          onClick={runPrediction}
-        >
+  onClick={runPrediction}
+  style={{
+    marginTop: 24,
+    width: "100%",
+    padding: "16px 24px",
+    fontSize: 18,
+    borderRadius: 14,
+    background: "linear-gradient(135deg,#22c55e,#16a34a)",
+    color: "#022c22",
+    border: "none",
+    fontWeight: 800,
+    cursor: "pointer",
+  }}
+>
+  Run Prediction Model
+</button>
           Run Prediction Model
         </button>
       )}
 
-      {filtrationInfo && (
-        <div className="neon-box">
-          <h2>{filtrationInfo.title}</h2>
-          <p><b>Tank:</b> {filtrationInfo.tank}</p>
-          <p><b>Status:</b> {filtrationInfo.status}</p>
-          <p>{filtrationInfo.explanation}</p>
-        </div>
-      )}
+     {filtrationInfo && (
+  <div
+    style={{
+      marginTop: 32,
+      padding: 24,
+      borderRadius: 16,
+      background: "#052e16",
+      border: "1px solid #22c55e",
+      color: "#ecfdf5",
+    }}
+  >
+    <h2 style={{ color: "#22c55e", marginBottom: 12 }}>
+      {filtrationInfo.title}
+    </h2>
+
+    <p><b>Tank:</b> {filtrationInfo.tank}</p>
+    <p><b>Status:</b> {filtrationInfo.status}</p>
+
+    <hr style={{ borderColor: "#14532d", margin: "16px 0" }} />
+
+    <p style={{ lineHeight: 1.6 }}>
+      {filtrationInfo.explanation}
+    </p>
+  </div>
+)}
 
       {readyToSave && (
-        <div className="neon-box">
-          <h3>Save Iteration</h3>
-          <input
-            className="iteration-input"
-            placeholder="Iteration name"
-            value={iterationName}
-            onChange={(e) => setIterationName(e.target.value)}
-          />
-          <button className="btn-green" onClick={saveIteration}>
-            Save Iteration
-          </button>
-        </div>
+        {readyToSave && (
+  <div
+    style={{
+      marginTop: 24,
+      padding: 20,
+      borderRadius: 14,
+      background: "#020617",
+      border: "1px dashed #22c55e",
+      display: "flex",
+      gap: 12,
+      alignItems: "center",
+    }}
+  >
+    <input
+      value={iterationName}
+      onChange={(e) => setIterationName(e.target.value)}
+      placeholder="Iteration name"
+      style={{
+        flex: 1,
+        padding: "12px 14px",
+        borderRadius: 10,
+        background: "#020617",
+        color: "#ecfdf5",
+        border: "1px solid #22c55e",
+        outline: "none",
+      }}
+    />
+
+    <button
+      onClick={saveIteration}
+      style={primaryButtonStyle}
+    >
+      Save Iteration
+    </button>
+  </div>
+)}
       )}
 
       {activeMetric && (
