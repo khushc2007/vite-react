@@ -3,24 +3,17 @@ import MetricCard from "../components/MetricCard";
 import DatasetTable from "../components/DatasetTable";
 import ChartModal from "../components/ChartModal";
 
-/* ======================================================
-   BACKEND ENDPOINTS
-====================================================== */
+/* ================= BACKEND ================= */
 const BACKEND_ANALYZE_URL =
   "https://water-quality-backend-8-ffv5.onrender.com/analyze-water";
-
 const BACKEND_LATEST_URL =
   "https://water-quality-backend-8-ffv5.onrender.com/latest";
 
-/* ======================================================
-   CONFIG
-====================================================== */
+/* ================= CONFIG ================= */
 const INTERVAL_MS = 4000;
 const MAX_ROWS = 10;
 
-/* ======================================================
-   TYPES
-====================================================== */
+/* ================= TYPES ================= */
 type Row = {
   slNo: number;
   time: string;
@@ -50,250 +43,102 @@ type Iteration = {
   };
 };
 
-/* ======================================================
-   FILTRATION KNOWLEDGE LIBRARY
-====================================================== */
-type FiltrationVisual = {
-  label: string;
-  src: string;
-  type: "image" | "lottie";
-};
-
-const FILTRATION_LIBRARY: Record<
-  string,
-  {
-    title: string;
-    tank: string;
-    status: string;
-    contamination: string[];
-    method: string[];
-    explanation: string;
-    postUse: string[];
-    risks: string[];
-    mitigation: string[];
-    visuals: FiltrationVisual[];
-  }
-> = {
+/* ================= FILTRATION LIBRARY ================= */
+const FILTRATION_LIBRARY: Record<string, any> = {
   F1: {
     title: "Baseline Polishing Filtration",
     tank: "Tank A",
     status: "Reusable (with baseline filtration)",
-    contamination: [
-      "Trace suspended particles such as sand, silt, rust flakes, and debris",
-      "Minor organic residues from surface runoff and domestic discharge",
-      "Aesthetic issues including color, odor, and taste inconsistencies",
-    ],
-    method: ["Sediment filtration", "Activated carbon filtration"],
     explanation:
       "F1 represents lightly contaminated water that is structurally safe but aesthetically impaired. Sediment filtration removes fine particulate matter that can clog systems or reduce clarity, while activated carbon adsorption removes dissolved organic compounds, chlorine residues, and odor-causing molecules. This preserves mineral balance while improving usability.",
-    postUse: [
-      "Gardening and landscaping",
-      "Toilet flushing",
-      "Domestic cleaning",
-      "Cooling water systems",
-      "Light industrial washing",
-    ],
-    risks: [
-      "Carbon saturation",
-      "Sediment filter clogging",
-      "Breakthrough if neglected",
-    ],
-    mitigation: [
-      "Scheduled replacement",
-      "Backwashing",
-      "Parallel units",
-    ],
-    visuals: [],
   },
   F2: {
     title: "Moderate Suspended Solids",
     tank: "Tank B",
     status: "Non-reusable (before treatment)",
-    contamination: [
-      "Moderate suspended solids",
-      "Visible turbidity",
-      "Flow instability",
-    ],
-    method: [
-      "Sand filtration",
-      "Activated carbon",
-      "Fine polishing filters",
-    ],
     explanation:
       "F2 water contains suspended solids that disrupt flow and damage equipment. Staged filtration progressively removes particles and stabilizes hydraulics, preparing water for controlled reuse.",
-    postUse: [
-      "Agricultural irrigation",
-      "Construction",
-      "Cooling towers",
-      "Equipment washing",
-    ],
-    risks: [
-      "Media saturation",
-      "Channeling",
-    ],
-    mitigation: [
-      "Layered beds",
-      "Periodic replacement",
-    ],
-    visuals: [],
   },
   F3: {
     title: "High Suspended Solids",
     tank: "Tank B",
     status: "Non-reusable (before treatment)",
-    contamination: [
-      "Very high suspended solids",
-      "Organic load",
-    ],
-    method: [
-      "Coagulation",
-      "Flocculation",
-      "Sedimentation",
-      "Rapid sand filtration",
-    ],
     explanation:
-      "F3 water requires chemical destabilization of colloids. Coagulants form flocs which settle and are filtered. This is standard in municipal wastewater treatment.",
-    postUse: [
-      "Industrial reuse",
-      "Construction",
-      "Landscaping",
-    ],
-    risks: [
-      "Sludge buildup",
-      "Chemical overdosing",
-    ],
-    mitigation: [
-      "Automated dosing",
-      "Sludge handling",
-    ],
-    visuals: [],
+      "F3 water requires coagulation, flocculation, sedimentation, and filtration. This process is standard in municipal and industrial wastewater treatment.",
   },
   F4: {
     title: "High Dissolved Solids",
     tank: "Tank B",
     status: "Non-reusable (before treatment)",
-    contamination: [
-      "High salts",
-      "High conductivity",
-    ],
-    method: [
-      "Ultrafiltration",
-      "Carbon stabilization",
-    ],
     explanation:
-      "F4 water is dominated by dissolved contaminants. UF protects downstream membranes and stabilizes chemistry.",
-    postUse: [
-      "Industrial processes",
-      "Cooling systems",
-      "Boiler feed",
-    ],
-    risks: [
-      "Membrane fouling",
-    ],
-    mitigation: [
-      "Cleaning cycles",
-      "Monitoring",
-    ],
-    visuals: [],
+      "F4 water is dominated by dissolved contaminants. Ultrafiltration stabilizes chemistry and protects downstream membranes.",
   },
   F5: {
     title: "Severe Dissolved Contamination",
     tank: "Tank B",
     status: "Non-reusable (before treatment)",
-    contamination: [
-      "Extreme dissolved solids",
-      "Toxic ions",
-    ],
-    method: [
-      "Advanced RO",
-      "Electrodialysis",
-      "Thermal desalination",
-    ],
     explanation:
-      "F5 water requires molecular-level separation. These processes are energy-intensive but essential for recovery.",
-    postUse: [
-      "Industrial manufacturing",
-      "Potable after remineralization",
-    ],
-    risks: [
-      "High cost",
-      "Brine disposal",
-    ],
-    mitigation: [
-      "ZLD systems",
-      "Energy recovery",
-    ],
-    visuals: [],
+      "F5 water requires molecular-level separation using advanced membrane or thermal processes.",
   },
 };
 
-/* ======================================================
-   COMPONENT
-====================================================== */
+/* ================= COMPONENT ================= */
 export default function LiveDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
+  const [mode, setMode] = useState<Mode>("idle");
+  const [prediction, setPrediction] = useState<any>(null);
   const [activeMetric, setActiveMetric] =
     useState<"ph" | "tds" | "turbidity" | null>(null);
-  const [prediction, setPrediction] = useState<any>(null);
-  const [mode, setMode] = useState<Mode>("idle");
+
   const [iterationName, setIterationName] = useState("");
   const [readyToSave, setReadyToSave] = useState(false);
 
   const slCounter = useRef(1);
   const clickCounter = useRef(0);
 
-  /* ======================================================
-     FALLBACK 1: URL FLAG
-  ====================================================== */
+  /* ========== FALLBACK 1: URL FLAG ========== */
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     if (p.get("live") === "li") setMode("live");
     if (p.get("live") === "fa") setMode("simulation");
   }, []);
 
-  /* ======================================================
-     FALLBACK 2: KEYBOARD
-  ====================================================== */
+  /* ========== FALLBACK 2: KEYBOARD (FIXED) ========== */
   useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === "L") setMode("live");
-      if (e.ctrlKey && e.shiftKey && e.key === "S") setMode("simulation");
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.code === "KeyL") setMode("live");
+      if (e.ctrlKey && e.shiftKey && e.code === "KeyS") setMode("simulation");
     };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  /* ======================================================
-     FALLBACK 3: CLICK COUNT
-  ====================================================== */
+  /* ========== FALLBACK 3: SECRET CLICK ========== */
   const secretClick = () => {
     clickCounter.current += 1;
-    if (clickCounter.current >= 10) setMode("simulation");
+    if (clickCounter.current >= 10) {
+      setMode("simulation");
+      clickCounter.current = 0;
+    }
   };
 
-  /* ======================================================
-     AVERAGES
-  ====================================================== */
+  /* ========== AVERAGES ========== */
   const avg = {
-    ph: rows.length ? rows.reduce((s, r) => s + r.ph, 0) / rows.length : 0,
-    turbidity: rows.length
-      ? rows.reduce((s, r) => s + r.turbidity, 0) / rows.length
-      : 0,
-    tds: rows.length ? rows.reduce((s, r) => s + r.tds, 0) / rows.length : 0,
+    ph: rows.reduce((s, r) => s + r.ph, 0) / (rows.length || 1),
+    turbidity: rows.reduce((s, r) => s + r.turbidity, 0) / (rows.length || 1),
+    tds: rows.reduce((s, r) => s + r.tds, 0) / (rows.length || 1),
   };
 
-  /* ======================================================
-     SIMULATION MODE
-  ====================================================== */
+  /* ========== SIMULATION MODE ========== */
   useEffect(() => {
     if (mode !== "simulation" || rows.length >= MAX_ROWS) return;
 
     const id = setInterval(() => {
-      setRows((p) =>
-        p.length >= MAX_ROWS
-          ? p
+      setRows((prev) =>
+        prev.length >= MAX_ROWS
+          ? prev
           : [
-              ...p,
+              ...prev,
               {
                 slNo: slCounter.current++,
                 time: new Date().toLocaleTimeString(),
@@ -309,9 +154,40 @@ export default function LiveDashboard() {
     return () => clearInterval(id);
   }, [mode, rows.length]);
 
-  /* ======================================================
-     RUN PREDICTION (NO AUTO SAVE)
-  ====================================================== */
+  /* ========== LIVE MODE + AUTO FALLBACK ========== */
+  useEffect(() => {
+    if (mode !== "live" || rows.length >= MAX_ROWS) return;
+
+    const id = setInterval(async () => {
+      try {
+        const res = await fetch(BACKEND_LATEST_URL);
+        if (!res.ok) throw new Error();
+
+        const d = await res.json();
+        setRows((prev) =>
+          prev.length >= MAX_ROWS
+            ? prev
+            : [
+                ...prev,
+                {
+                  slNo: slCounter.current++,
+                  time: new Date().toLocaleTimeString(),
+                  ph: d.ph,
+                  turbidity: d.turbidity,
+                  tds: d.tds,
+                  source: "live",
+                },
+              ]
+        );
+      } catch {
+        setMode("simulation");
+      }
+    }, INTERVAL_MS);
+
+    return () => clearInterval(id);
+  }, [mode, rows.length]);
+
+  /* ========== RUN PREDICTION ========== */
   const runPrediction = async () => {
     const res = await fetch(BACKEND_ANALYZE_URL, {
       method: "POST",
@@ -323,9 +199,7 @@ export default function LiveDashboard() {
     setReadyToSave(true);
   };
 
-  /* ======================================================
-     SAVE ITERATION
-  ====================================================== */
+  /* ========== SAVE ITERATION ========== */
   const saveIteration = () => {
     const iteration: Iteration = {
       id: crypto.randomUUID(),
@@ -350,48 +224,52 @@ export default function LiveDashboard() {
     setIterationName("");
   };
 
-  const filtrationInfo =
+  const filtration =
     prediction && FILTRATION_LIBRARY[prediction.filtrationBracket];
 
+  /* ================= UI ================= */
   return (
     <div style={{ padding: 24 }}>
-      <h1 onClick={secretClick}>Live Dashboard</h1>
+      <h1 onClick={secretClick} style={{ cursor: "pointer" }}>
+        Live Dashboard
+      </h1>
 
       <div style={{ display: "flex", gap: 12 }}>
-        <button onClick={() => setMode("simulation")}>Deploy Simulation</button>
-        <button onClick={() => setMode("live")}>Deploy Live Sensors</button>
+        <button className="btn-green" onClick={() => setMode("simulation")}>
+          Deploy Simulation
+        </button>
+        <button className="btn-green" onClick={() => setMode("live")}>
+          Deploy Live Sensors
+        </button>
       </div>
 
       <DatasetTable rows={rows} />
 
       {rows.length === MAX_ROWS && (
-        <button onClick={runPrediction}>Run Prediction Model</button>
+        <button className="btn-green" onClick={runPrediction}>
+          Run Prediction Model
+        </button>
       )}
 
-      {filtrationInfo && (
-        <div
-          style={{
-            marginTop: 24,
-            padding: 20,
-            borderRadius: 12,
-            background: "#052e16",
-            border: "1px solid #22c55e",
-            color: "#e5e7eb",
-          }}
-        >
-          <h2>{filtrationInfo.title}</h2>
-          <p>{filtrationInfo.explanation}</p>
+      {filtration && (
+        <div className="neon-box">
+          <h2>{filtration.title}</h2>
+          <p><b>Tank:</b> {filtration.tank}</p>
+          <p><b>Status:</b> {filtration.status}</p>
+          <p>{filtration.explanation}</p>
         </div>
       )}
 
       {readyToSave && (
-        <div style={{ marginTop: 20 }}>
+        <div className="neon-box">
           <input
             placeholder="Iteration name"
             value={iterationName}
             onChange={(e) => setIterationName(e.target.value)}
           />
-          <button onClick={saveIteration}>Save Iteration</button>
+          <button className="btn-green" onClick={saveIteration}>
+            Save Iteration
+          </button>
         </div>
       )}
 
