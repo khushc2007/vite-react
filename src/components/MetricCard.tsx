@@ -1,31 +1,42 @@
 export default function MetricCard({
   title,
   valueKey,
-  rows,
+  rows = [],
   avg,
   onClick,
 }: any) {
-  const current = rows.length ? rows[rows.length - 1][valueKey] : "--";
-  const deviation =
-    avg && current !== "--"
-      ? (((current - avg) / avg) * 100).toFixed(2)
-      : "0";
+  const hasData = rows.length > 0;
+
+  const current = hasData
+    ? Number(rows[rows.length - 1]?.[valueKey])
+    : null;
+
+  const safeAvg =
+    typeof avg === "number" && avg > 0 ? avg : null;
+
+  let deviationText = "—";
+
+  if (current !== null && safeAvg) {
+    const diff = ((current - safeAvg) / safeAvg) * 100;
+    deviationText = `${diff >= 0 ? "+" : ""}${diff.toFixed(2)}% from avg`;
+  }
 
   return (
     <div
-      onClick={onClick}
+      onClick={hasData ? onClick : undefined}
       style={{
         background: "#1e293b",
         padding: 18,
         borderRadius: 12,
         width: 180,
-        cursor: "pointer",
+        cursor: hasData ? "pointer" : "default",
+        opacity: hasData ? 1 : 0.7,
       }}
     >
       <h4>{title}</h4>
-      <h2>{current}</h2>
+      <h2>{current !== null ? current : "—"}</h2>
       <small>
-        Avg: {avg} | {deviation}% from avg
+        Avg: {safeAvg ?? "—"} | {deviationText}
         <br />
         Updated every 4s
       </small>
