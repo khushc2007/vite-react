@@ -17,6 +17,8 @@ const BACKEND_LATEST_URL =
 ====================================================== */
 const INTERVAL_MS = 4000;
 const MAX_ROWS = 10;
+const clickCounter = useRef(0);
+const lastModeRef = useRef<Mode>("idle");
 
 /* ======================================================
    TYPES
@@ -262,31 +264,94 @@ const secondaryButtonStyle = {
      FALLBACK 1: URL FLAG
   ====================================================== */
   useEffect(() => {
-    const p = new URLSearchParams(window.location.search);
-    if (p.get("live") === "li") setMode("live");
-    if (p.get("live") === "fa") setMode("simulation");
-  }, []);
+  const params = new URLSearchParams(window.location.search);
+  const flag = params.get("live");
 
+  if (flag === "li") {
+    setMode("live");
+    lastModeRef.current = "live";
+  }
+
+  if (flag === "fa") {
+    setMode("simulation");
+    lastModeRef.current = "simulation";
+  }
+}, []);
   /* ======================================================
      FALLBACK 2: KEYBOARD
   ====================================================== */
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === "L") setMode("live");
-      if (e.ctrlKey && e.shiftKey && e.key === "S") setMode("simulation");
-    };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, []);
+ useEffect(() => {
+  const handler = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "l") {
+      setMode("live");
+      lastModeRef.current = "live";
+    }
+
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "s") {
+      setMode("simulation");
+      lastModeRef.current = "simulation";
+    }
+  };
+
+  window.addEventListener("keydown", handler);
+  return () => window.removeEventListener("keydown", handler);
+}, []);
 
   /* ======================================================
      FALLBACK 3: CLICK COUNT
   ====================================================== */
   const secretClick = () => {
-    clickCounter.current += 1;
-    if (clickCounter.current >= 10) setMode("simulation");
-  };
+  clickCounter.current += 1;
 
+  if (clickCounter.current >= 10) {
+    setMode("simulation");
+    lastModeRef.current = "simulation";
+    clickCounter.current = 0; // reset
+  }
+};
+
+
+   /* ======================================================
+     FALLBACK 4: LIVE MODE AUTO FAILOVER (INTERVAL SAFETY)
+  ====================================================== */
+useEffect(() => {
+  if (mode !== "live") return;
+  if (rows.length >= MAX_ROWS) return;
+
+  const id = setInterval(async () => {
+    try {
+      const res = await fetch(BACKEND_LATEST_URL);
+      if (!res.ok) throw new Error("Backend down");
+
+      const data = await res.json();
+
+      setRows((prev) => {
+        if (prev.length >= MAX_ROWS) return prev;
+
+        return [
+          ...prev,
+          {
+            slNo: slCounter.current++,
+            time: data.time ?? new Date().toLocaleTimeString(),
+            ph: data.ph,
+            turbidity: data.turbidity,
+            tds: data.tds,
+            source: "live",
+          },
+        ];
+      });
+    } catch (err) {
+      // 🔥 HARD FAILOVER
+      setMode("simulation");
+      lastModeRef.current = "simulation";
+    }
+  }, INTERVAL_MS);
+
+  return () => clearInterval(id);
+}, [mode, rows.length]);
+
+
+   
   /* ======================================================
      AVERAGES
   ====================================================== */
@@ -371,7 +436,9 @@ const secondaryButtonStyle = {
     prediction && FILTRATION_LIBRARY[prediction.filtrationBracket];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: 24 }}
+       onClick={secretClick}
+       >
       {/* TOP BAR */}
       <div
         style={{
@@ -398,9 +465,7 @@ const secondaryButtonStyle = {
   Deploy Live Sensors
 </button>
 
-          <button className="btn-green" onClick={() => setMode("live")}>
-            Deploy Live Sensors
-          </button>
+          
         </div>
       </div>
 
