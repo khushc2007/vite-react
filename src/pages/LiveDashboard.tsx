@@ -3,17 +3,24 @@ import MetricCard from "../components/MetricCard";
 import DatasetTable from "../components/DatasetTable";
 import ChartModal from "../components/ChartModal";
 
-/* ================= BACKEND ================= */
+/* ======================================================
+   BACKEND ENDPOINTS
+====================================================== */
 const BACKEND_ANALYZE_URL =
   "https://water-quality-backend-8-ffv5.onrender.com/analyze-water";
+
 const BACKEND_LATEST_URL =
   "https://water-quality-backend-8-ffv5.onrender.com/latest";
 
-/* ================= CONFIG ================= */
+/* ======================================================
+   CONFIG
+====================================================== */
 const INTERVAL_MS = 4000;
 const MAX_ROWS = 10;
 
-/* ================= TYPES ================= */
+/* ======================================================
+   TYPES
+====================================================== */
 type Row = {
   slNo: number;
   time: string;
@@ -43,102 +50,247 @@ type Iteration = {
   };
 };
 
-/* ================= FILTRATION LIBRARY ================= */
-const FILTRATION_LIBRARY: Record<string, any> = {
+/* ======================================================
+   FILTRATION KNOWLEDGE LIBRARY
+====================================================== */
+type FiltrationVisual = {
+  label: string;
+  src: string;
+  type: "image" | "lottie";
+};
+
+const FILTRATION_LIBRARY: Record<
+  string,
+  {
+    title: string;
+    tank: string;
+    status: string;
+    contamination: string[];
+    method: string[];
+    explanation: string;
+    postUse: string[];
+    risks: string[];
+    mitigation: string[];
+    visuals: FiltrationVisual[];
+  }
+> = {
   F1: {
     title: "Baseline Polishing Filtration",
     tank: "Tank A",
     status: "Reusable (with baseline filtration)",
+    contamination: [
+      "Trace suspended particles such as sand, silt, rust flakes, and debris",
+      "Minor organic residues from surface runoff and domestic discharge",
+      "Aesthetic issues including color, odor, and taste inconsistencies",
+    ],
+    method: ["Sediment filtration", "Activated carbon filtration"],
     explanation:
-      "F1 represents lightly contaminated water that is structurally safe but aesthetically impaired. Sediment filtration removes fine particulate matter that can clog systems or reduce clarity, while activated carbon adsorption removes dissolved organic compounds, chlorine residues, and odor-causing molecules. This preserves mineral balance while improving usability.",
+      "F1 represents lightly contaminated water that is structurally safe but aesthetically impaired. Sediment filtration removes fine particulate matter that can clog systems or reduce clarity, while activated carbon adsorption removes dissolved organic compounds, chlorine residues, and odor-causing molecules. This preserves mineral balance while improving usability and ensures consistent performance in non-potable reuse systems.",
+    postUse: [
+      "Gardening and landscaping",
+      "Toilet flushing",
+      "Domestic cleaning",
+      "Cooling water systems",
+      "Light industrial washing",
+    ],
+    risks: [
+      "Carbon saturation over prolonged usage",
+      "Sediment filter clogging",
+      "Breakthrough of fine particles if maintenance is neglected",
+    ],
+    mitigation: [
+      "Scheduled filter replacement",
+      "Backwashing mechanisms",
+      "Parallel filtration units for redundancy",
+    ],
+    visuals: [],
   },
+
   F2: {
     title: "Moderate Suspended Solids",
     tank: "Tank B",
     status: "Non-reusable (before treatment)",
+    contamination: [
+      "Moderate suspended solids",
+      "Visible turbidity",
+      "Particulate-induced flow instability",
+    ],
+    method: [
+      "Sand filtration",
+      "Activated carbon filtration",
+      "Fine polishing filters",
+    ],
     explanation:
-      "F2 water contains suspended solids that disrupt flow and damage equipment. Staged filtration progressively removes particles and stabilizes hydraulics, preparing water for controlled reuse.",
+      "F2 water contains suspended solids at levels that interfere with hydraulic performance and mechanical equipment. A staged filtration process removes progressively smaller particles, stabilizing hydraulics, protecting infrastructure, and enabling controlled reuse for non-sensitive applications.",
+    postUse: [
+      "Agricultural irrigation",
+      "Construction activities",
+      "Cooling towers",
+      "Equipment and vehicle washing",
+    ],
+    risks: ["Media saturation", "Channel formation"],
+    mitigation: [
+      "Layered filter beds",
+      "Periodic media replacement",
+      "Modular filtration design",
+    ],
+    visuals: [],
   },
+
   F3: {
     title: "High Suspended Solids",
     tank: "Tank B",
     status: "Non-reusable (before treatment)",
+    contamination: [
+      "Very high suspended solids",
+      "Organic and biological particulate load",
+    ],
+    method: [
+      "Coagulation",
+      "Flocculation",
+      "Sedimentation",
+      "Rapid sand filtration",
+    ],
     explanation:
-      "F3 water requires coagulation, flocculation, sedimentation, and filtration. This process is standard in municipal and industrial wastewater treatment.",
+      "F3 water requires chemical destabilization of colloidal particles. Coagulants neutralize surface charges, forming flocs that settle during sedimentation. Rapid sand filtration removes remaining solids. This process is standard in municipal and industrial wastewater treatment.",
+    postUse: [
+      "Industrial reuse",
+      "Construction supply",
+      "Landscaping",
+    ],
+    risks: ["Sludge accumulation", "Chemical overdosing"],
+    mitigation: [
+      "Automated dosing systems",
+      "Sludge dewatering and disposal",
+    ],
+    visuals: [],
   },
+
   F4: {
     title: "High Dissolved Solids",
     tank: "Tank B",
     status: "Non-reusable (before treatment)",
+    contamination: [
+      "High dissolved salts and ions",
+      "Elevated electrical conductivity",
+    ],
+    method: [
+      "Ultrafiltration",
+      "Activated carbon stabilization",
+    ],
     explanation:
-      "F4 water is dominated by dissolved contaminants. Ultrafiltration stabilizes chemistry and protects downstream membranes.",
+      "F4 water is dominated by dissolved contaminants. Ultrafiltration removes colloids and biological matter while protecting downstream membranes. Activated carbon stabilizes chemistry, preparing water for advanced treatment stages.",
+    postUse: [
+      "Industrial process water",
+      "Cooling systems",
+      "Boiler feed with conditioning",
+    ],
+    risks: ["Membrane fouling", "Pressure loss"],
+    mitigation: [
+      "Optimized pretreatment",
+      "Scheduled membrane cleaning",
+      "Continuous monitoring",
+    ],
+    visuals: [],
   },
+
   F5: {
     title: "Severe Dissolved Contamination",
     tank: "Tank B",
     status: "Non-reusable (before treatment)",
+    contamination: [
+      "Extremely high dissolved solids",
+      "Toxic ions and chemical pollutants",
+    ],
+    method: [
+      "Advanced reverse osmosis",
+      "Electrodialysis",
+      "Thermal desalination",
+    ],
     explanation:
-      "F5 water requires molecular-level separation using advanced membrane or thermal processes.",
+      "F5 represents extreme contamination. Molecular-level separation technologies are required. These systems are energy-intensive but essential for recovering water from industrial, saline, or chemically polluted sources.",
+    postUse: [
+      "Industrial manufacturing",
+      "Potable water after remineralization",
+      "Emergency water supply",
+    ],
+    risks: ["High operational cost", "Brine disposal challenges"],
+    mitigation: [
+      "Zero Liquid Discharge systems",
+      "Energy recovery devices",
+      "Brine recovery and reuse",
+    ],
+    visuals: [],
   },
 };
 
-/* ================= COMPONENT ================= */
+/* ======================================================
+   COMPONENT
+====================================================== */
 export default function LiveDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
-  const [mode, setMode] = useState<Mode>("idle");
-  const [prediction, setPrediction] = useState<any>(null);
   const [activeMetric, setActiveMetric] =
     useState<"ph" | "tds" | "turbidity" | null>(null);
-
+  const [prediction, setPrediction] = useState<any>(null);
+  const [mode, setMode] = useState<Mode>("idle");
   const [iterationName, setIterationName] = useState("");
   const [readyToSave, setReadyToSave] = useState(false);
 
   const slCounter = useRef(1);
   const clickCounter = useRef(0);
 
-  /* ========== FALLBACK 1: URL FLAG ========== */
+  /* ======================================================
+     FALLBACK 1: URL FLAG
+  ====================================================== */
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     if (p.get("live") === "li") setMode("live");
     if (p.get("live") === "fa") setMode("simulation");
   }, []);
 
-  /* ========== FALLBACK 2: KEYBOARD (FIXED) ========== */
+  /* ======================================================
+     FALLBACK 2: KEYBOARD
+  ====================================================== */
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.code === "KeyL") setMode("live");
-      if (e.ctrlKey && e.shiftKey && e.code === "KeyS") setMode("simulation");
+    const h = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === "L") setMode("live");
+      if (e.ctrlKey && e.shiftKey && e.key === "S") setMode("simulation");
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
   }, []);
 
-  /* ========== FALLBACK 3: SECRET CLICK ========== */
+  /* ======================================================
+     FALLBACK 3: CLICK COUNT
+  ====================================================== */
   const secretClick = () => {
     clickCounter.current += 1;
-    if (clickCounter.current >= 10) {
-      setMode("simulation");
-      clickCounter.current = 0;
-    }
+    if (clickCounter.current >= 10) setMode("simulation");
   };
 
-  /* ========== AVERAGES ========== */
+  /* ======================================================
+     AVERAGES
+  ====================================================== */
   const avg = {
-    ph: rows.reduce((s, r) => s + r.ph, 0) / (rows.length || 1),
-    turbidity: rows.reduce((s, r) => s + r.turbidity, 0) / (rows.length || 1),
-    tds: rows.reduce((s, r) => s + r.tds, 0) / (rows.length || 1),
+    ph: rows.length ? rows.reduce((s, r) => s + r.ph, 0) / rows.length : 0,
+    turbidity: rows.length
+      ? rows.reduce((s, r) => s + r.turbidity, 0) / rows.length
+      : 0,
+    tds: rows.length ? rows.reduce((s, r) => s + r.tds, 0) / rows.length : 0,
   };
 
-  /* ========== SIMULATION MODE ========== */
+  /* ======================================================
+     SIMULATION MODE
+  ====================================================== */
   useEffect(() => {
     if (mode !== "simulation" || rows.length >= MAX_ROWS) return;
 
     const id = setInterval(() => {
-      setRows((prev) =>
-        prev.length >= MAX_ROWS
-          ? prev
+      setRows((p) =>
+        p.length >= MAX_ROWS
+          ? p
           : [
-              ...prev,
+              ...p,
               {
                 slNo: slCounter.current++,
                 time: new Date().toLocaleTimeString(),
@@ -154,52 +306,24 @@ export default function LiveDashboard() {
     return () => clearInterval(id);
   }, [mode, rows.length]);
 
-  /* ========== LIVE MODE + AUTO FALLBACK ========== */
-  useEffect(() => {
-    if (mode !== "live" || rows.length >= MAX_ROWS) return;
-
-    const id = setInterval(async () => {
-      try {
-        const res = await fetch(BACKEND_LATEST_URL);
-        if (!res.ok) throw new Error();
-
-        const d = await res.json();
-        setRows((prev) =>
-          prev.length >= MAX_ROWS
-            ? prev
-            : [
-                ...prev,
-                {
-                  slNo: slCounter.current++,
-                  time: new Date().toLocaleTimeString(),
-                  ph: d.ph,
-                  turbidity: d.turbidity,
-                  tds: d.tds,
-                  source: "live",
-                },
-              ]
-        );
-      } catch {
-        setMode("simulation");
-      }
-    }, INTERVAL_MS);
-
-    return () => clearInterval(id);
-  }, [mode, rows.length]);
-
-  /* ========== RUN PREDICTION ========== */
+  /* ======================================================
+     RUN PREDICTION
+  ====================================================== */
   const runPrediction = async () => {
     const res = await fetch(BACKEND_ANALYZE_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(avg),
     });
+
     const result = await res.json();
     setPrediction(result);
     setReadyToSave(true);
   };
 
-  /* ========== SAVE ITERATION ========== */
+  /* ======================================================
+     SAVE ITERATION
+  ====================================================== */
   const saveIteration = () => {
     const iteration: Iteration = {
       id: crypto.randomUUID(),
@@ -220,49 +344,73 @@ export default function LiveDashboard() {
       JSON.stringify([...existing, iteration])
     );
 
-    setReadyToSave(false);
     setIterationName("");
+    setReadyToSave(false);
   };
 
-  const filtration =
+  const filtrationInfo =
     prediction && FILTRATION_LIBRARY[prediction.filtrationBracket];
 
-  /* ================= UI ================= */
   return (
     <div style={{ padding: 24 }}>
-      <h1 onClick={secretClick} style={{ cursor: "pointer" }}>
-        Live Dashboard
-      </h1>
+      {/* TOP BAR */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 24,
+        }}
+      >
+        <h1 onClick={secretClick}>Live Dashboard</h1>
 
-      <div style={{ display: "flex", gap: 12 }}>
-        <button className="btn-green" onClick={() => setMode("simulation")}>
-          Deploy Simulation
-        </button>
-        <button className="btn-green" onClick={() => setMode("live")}>
-          Deploy Live Sensors
-        </button>
+        <div style={{ display: "flex", gap: 12 }}>
+          <button className="btn-green" onClick={() => setMode("simulation")}>
+            Deploy Simulation
+          </button>
+          <button className="btn-green" onClick={() => setMode("live")}>
+            Deploy Live Sensors
+          </button>
+        </div>
+      </div>
+
+      {/* METRIC CARDS */}
+      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
+        <MetricCard title="pH" valueKey="ph" rows={rows} avg={avg.ph}
+          onClick={() => rows.length && setActiveMetric("ph")} />
+        <MetricCard title="TDS" valueKey="tds" rows={rows} avg={avg.tds}
+          onClick={() => rows.length && setActiveMetric("tds")} />
+        <MetricCard title="Turbidity" valueKey="turbidity" rows={rows}
+          avg={avg.turbidity}
+          onClick={() => rows.length && setActiveMetric("turbidity")} />
       </div>
 
       <DatasetTable rows={rows} />
 
       {rows.length === MAX_ROWS && (
-        <button className="btn-green" onClick={runPrediction}>
+        <button
+          className="btn-green"
+          style={{ marginTop: 24, width: "100%", fontSize: 18 }}
+          onClick={runPrediction}
+        >
           Run Prediction Model
         </button>
       )}
 
-      {filtration && (
+      {filtrationInfo && (
         <div className="neon-box">
-          <h2>{filtration.title}</h2>
-          <p><b>Tank:</b> {filtration.tank}</p>
-          <p><b>Status:</b> {filtration.status}</p>
-          <p>{filtration.explanation}</p>
+          <h2>{filtrationInfo.title}</h2>
+          <p><b>Tank:</b> {filtrationInfo.tank}</p>
+          <p><b>Status:</b> {filtrationInfo.status}</p>
+          <p>{filtrationInfo.explanation}</p>
         </div>
       )}
 
       {readyToSave && (
         <div className="neon-box">
+          <h3>Save Iteration</h3>
           <input
+            className="iteration-input"
             placeholder="Iteration name"
             value={iterationName}
             onChange={(e) => setIterationName(e.target.value)}
