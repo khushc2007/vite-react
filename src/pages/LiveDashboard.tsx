@@ -464,7 +464,7 @@ const secondaryButtonStyle = {
 )}
 
       {readyToSave && (
-        {readyToSave && (
+        
   <div
     style={{
       marginTop: 24,
