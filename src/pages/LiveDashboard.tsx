@@ -3,24 +3,24 @@ import MetricCard from "../components/MetricCard";
 import DatasetTable from "../components/DatasetTable";
 import ChartModal from "../components/ChartModal";
 
-/* ===============================
+/* ======================================================
    BACKEND ENDPOINTS
-================================ */
+====================================================== */
 const BACKEND_ANALYZE_URL =
   "https://water-quality-backend-8-ffv5.onrender.com/analyze-water";
 
 const BACKEND_LATEST_URL =
   "https://water-quality-backend-8-ffv5.onrender.com/latest";
 
-/* ===============================
-   CONFIG
-================================ */
+/* ======================================================
+   CONFIGURATION
+====================================================== */
 const INTERVAL_MS = 4000;
 const MAX_ROWS = 10;
 
-/* ===============================
+/* ======================================================
    TYPES
-================================ */
+====================================================== */
 type Row = {
   slNo: number;
   time: string;
@@ -49,11 +49,10 @@ type Iteration = {
   };
 };
 
-/* ===============================
+/* ======================================================
    FILTRATION KNOWLEDGE LIBRARY
    (UI ENRICHMENT LAYER)
-================================ */
-
+====================================================== */
 type FiltrationVisual = {
   label: string;
   src: string;
@@ -66,14 +65,12 @@ const FILTRATION_LIBRARY: Record<
     title: string;
     tank: string;
     status: string;
-
     contamination: string[];
     method: string[];
     explanation: string;
     postUse: string[];
     risks: string[];
     mitigation: string[];
-
     visuals: FiltrationVisual[];
   }
 > = {
@@ -81,215 +78,170 @@ const FILTRATION_LIBRARY: Record<
     title: "Baseline Polishing Filtration",
     tank: "Tank A",
     status: "Reusable (with baseline filtration)",
-
     contamination: [
-      "Trace suspended particles such as fine sand, silt, and rust flakes",
-      "Minor organic residues from domestic runoff and surface water",
-      "Color, odor, and aesthetic inconsistencies that reduce visual quality"
+      "Trace suspended particles such as sand, silt, rust flakes, and debris",
+      "Minor organic residues from surface runoff and domestic discharge",
+      "Aesthetic issues including color, odor, and taste inconsistencies",
     ],
-
     method: [
       "Sediment filtration",
-      "Activated carbon filtration"
+      "Activated carbon filtration",
     ],
-
     explanation:
-      "Water classified under the F1 filtration bracket exhibits only minor physical and aesthetic contamination and is considered structurally safe for reuse after baseline polishing. Sediment filtration is employed to remove fine particulate matter such as sand, silt, corrosion debris, and organic fragments that can impair clarity and gradually damage plumbing or mechanical systems. Following this, activated carbon filtration adsorbs dissolved organic compounds, chlorine residuals, and odor-causing molecules through surface adsorption and pore diffusion mechanisms. This combined treatment approach does not significantly alter the chemical composition of water, preserving its mineral balance while substantially improving clarity, odor, and usability. As a result, F1 treatment is widely regarded as the minimum standard for safe non-potable reuse systems in sustainable water management frameworks.",
-
+      "F1 represents lightly contaminated water that is structurally safe but aesthetically impaired. Sediment filtration removes fine particulate matter that can clog systems or reduce clarity, while activated carbon adsorption removes dissolved organic compounds, chlorine residues, and odor-causing molecules. This process preserves the natural mineral balance of water while improving usability. It is widely accepted as baseline polishing for safe non-potable reuse systems.",
     postUse: [
-      "Gardening and landscape irrigation",
-      "Toilet flushing systems",
-      "Domestic cleaning and washing",
+      "Gardening and landscaping",
+      "Toilet flushing",
+      "Domestic cleaning",
       "Cooling water for HVAC systems",
-      "Light industrial and maintenance washing"
+      "Light industrial washing",
     ],
-
     risks: [
-      "Activated carbon media saturation leading to reduced adsorption efficiency",
-      "Sediment filter clogging due to prolonged operation",
-      "Undetected breakthrough of fine particulates if filters are neglected"
+      "Carbon saturation over prolonged usage",
+      "Sediment filter clogging",
+      "Breakthrough of fine particles if maintenance is neglected",
     ],
-
     mitigation: [
-      "Scheduled replacement of sediment and carbon filter cartridges",
-      "Installation of backwashing or self-cleaning filter systems",
-      "Use of parallel filtration units to maintain redundancy and flow stability"
+      "Scheduled filter replacement",
+      "Backwashing mechanisms",
+      "Parallel filtration units for redundancy",
     ],
-
-    visuals: []
+    visuals: [],
   },
 
   F2: {
     title: "Moderate Suspended Solids",
     tank: "Tank B",
     status: "Non-reusable (before treatment)",
-
     contamination: [
-      "Moderate concentration of suspended solids",
-      "Visible turbidity reducing transparency",
-      "Particulate matter causing flow instability and abrasion risk"
+      "Moderate suspended solids",
+      "Visible turbidity",
+      "Particulate-induced flow instability",
     ],
-
     method: [
-      "Multi-stage physical filtration",
       "Sand filtration",
       "Activated carbon filtration",
-      "Fine polishing filters"
+      "Fine polishing filters",
     ],
-
     explanation:
-      "F2-classified water contains a moderate level of suspended solids that make it unsuitable for direct reuse without structured treatment. These suspended particles increase turbidity, interfere with flow dynamics, and pose mechanical risks to pumps, valves, and pipelines. Multi-stage physical filtration is applied to progressively remove contaminants: sand filtration captures larger particulates through depth filtration, activated carbon stabilizes organic and chemical residues, and fine polishing filters remove remaining micro-particles. This layered filtration strategy improves hydraulic stability and protects downstream systems. While chemical composition remains largely unchanged, the physical cleanup achieved through this process enables controlled reuse for applications tolerant to minor residual contamination.",
-
+      "F2 water contains suspended solids at levels that interfere with hydraulic performance and mechanical equipment. A staged filtration process removes progressively smaller particles, stabilizing flow characteristics and preventing abrasion or clogging. This treatment prepares water for controlled reuse where minor residual contamination is acceptable.",
     postUse: [
-      "Agricultural irrigation systems",
-      "Construction and curing water",
-      "Cooling towers and industrial heat exchangers",
-      "Vehicle and equipment washing"
+      "Agricultural irrigation",
+      "Construction activities",
+      "Cooling towers",
+      "Equipment and vehicle washing",
     ],
-
     risks: [
-      "Sand filter bed saturation over time",
-      "Channel formation within filter media reducing efficiency",
-      "Uneven flow distribution across filtration layers"
+      "Sand bed saturation",
+      "Channel formation in filter media",
     ],
-
     mitigation: [
-      "Periodic sand and media replacement",
-      "Use of layered or graded filter beds",
-      "Modular filtration units allowing staged maintenance"
+      "Layered filter beds",
+      "Periodic media replacement",
+      "Modular filtration design",
     ],
-
-    visuals: []
+    visuals: [],
   },
 
   F3: {
     title: "High Suspended Solids",
     tank: "Tank B",
     status: "Non-reusable (before treatment)",
-
     contamination: [
-      "Very high suspended solids concentration",
+      "Very high suspended solids",
       "Organic and biological particulate load",
-      "Colloidal matter resistant to simple filtration"
     ],
-
     method: [
-      "Chemical coagulation",
+      "Coagulation",
       "Flocculation",
       "Sedimentation",
-      "Rapid sand filtration"
+      "Rapid sand filtration",
     ],
-
     explanation:
-      "Water falling under the F3 bracket contains a heavy load of suspended solids, including fine particulates, organic matter, and biological debris that cannot be effectively removed through simple physical filtration alone. Chemical coagulation is introduced to destabilize colloidal particles by neutralizing surface charges, allowing them to aggregate during flocculation into larger, settleable masses. These flocs are then removed through sedimentation, significantly reducing the suspended load. Rapid sand filtration acts as a final polishing step to capture remaining particulates. This treatment train is a standard configuration in municipal wastewater and industrial effluent treatment plants and is essential for preventing mechanical abrasion, fouling, and downstream process failure.",
-
+      "F3 water requires chemical destabilization of colloidal particles. Coagulants neutralize surface charges, enabling floc formation. These flocs settle during sedimentation and are removed through rapid sand filtration. This treatment train is standard in municipal and industrial wastewater plants and is critical for preventing mechanical failure downstream.",
     postUse: [
-      "Industrial reuse applications",
-      "Construction and earthwork operations",
-      "Landscaping and non-food irrigation"
+      "Industrial reuse",
+      "Construction supply",
+      "Landscaping",
     ],
-
     risks: [
-      "Sludge accumulation requiring disposal",
-      "Chemical overdosing leading to residual contamination",
-      "Operational complexity and monitoring requirements"
+      "Sludge accumulation",
+      "Chemical overdosing",
     ],
-
     mitigation: [
-      "Sludge dewatering and safe disposal systems",
-      "Automated chemical dosing control",
-      "Large-capacity clarifiers for stable sedimentation"
+      "Automated dosing systems",
+      "Sludge dewatering and disposal",
     ],
-
-    visuals: []
+    visuals: [],
   },
 
   F4: {
     title: "High Dissolved Solids",
     tank: "Tank B",
     status: "Non-reusable (before treatment)",
-
     contamination: [
-      "High concentration of dissolved salts and ions",
+      "High dissolved salts and ions",
       "Elevated electrical conductivity",
-      "Chemical imbalance affecting compatibility"
     ],
-
     method: [
-      "Ultrafiltration (UF)",
+      "Ultrafiltration",
       "Activated carbon stabilization",
-      "Pre-treatment for membrane systems"
     ],
-
     explanation:
-      "F4 water is dominated by dissolved contaminants rather than suspended solids, making it unsuitable for conventional filtration approaches. Ultrafiltration removes colloids, macromolecules, and biological contaminants while allowing most dissolved salts to pass through, thereby protecting downstream membrane systems. Activated carbon adsorption helps stabilize chemical composition by removing trace organics and oxidants. This bracket is commonly used as a pre-treatment stage for reverse osmosis or in applications where partial salt tolerance exists. Although not potable at this stage, F4 treatment significantly improves chemical stability and reduces biofouling risk.",
-
+      "F4 water is dominated by dissolved contaminants rather than suspended solids. Ultrafiltration removes colloids and biological matter, protecting downstream membrane systems. Carbon adsorption improves chemical stability. This bracket is often used as a pre-treatment stage before reverse osmosis or where partial salt tolerance exists.",
     postUse: [
       "Industrial process water",
-      "Cooling and heat exchange systems",
-      "Boiler feed water with conditioning"
+      "Cooling systems",
+      "Boiler feed with conditioning",
     ],
-
     risks: [
       "Membrane fouling",
-      "Pressure loss across UF systems",
-      "Incomplete salt removal"
+      "Pressure loss across UF membranes",
     ],
-
     mitigation: [
-      "Optimized pre-treatment design",
-      "Periodic membrane cleaning cycles",
-      "Continuous conductivity monitoring"
+      "Optimized pre-treatment",
+      "Scheduled membrane cleaning",
+      "Continuous conductivity monitoring",
     ],
-
-    visuals: []
+    visuals: [],
   },
 
   F5: {
     title: "Severe Dissolved Contamination",
     tank: "Tank B",
     status: "Non-reusable (before treatment)",
-
     contamination: [
-      "Extremely high dissolved solids concentration",
-      "Heavy ions, salts, and chemical pollutants",
-      "Potential toxic and industrial contaminants"
+      "Extremely high dissolved solids",
+      "Toxic ions and chemical pollutants",
     ],
-
     method: [
       "Advanced reverse osmosis",
       "Electrodialysis",
-      "Thermal desalination (where applicable)"
+      "Thermal desalination",
     ],
-
     explanation:
-      "F5 represents the most severe level of water contamination, characterized by extreme dissolved solids, toxic ions, and chemical pollutants that render water completely unsuitable for direct reuse. Advanced separation technologies such as high-pressure reverse osmosis, electrodialysis, or thermal desalination are required to remove contaminants at the molecular level. These processes are energy-intensive and generate concentrated reject streams but are essential for recovering water from highly contaminated industrial, brackish, or saline sources. Following treatment and appropriate remineralization, recovered water can meet stringent industrial or potable standards.",
-
+      "F5 represents the most severe contamination level. Advanced separation technologies are required to remove contaminants at the molecular level. These processes are energy-intensive but essential for recovering water from highly contaminated industrial or saline sources.",
     postUse: [
-      "Industrial manufacturing processes",
+      "Industrial manufacturing",
       "Potable water after remineralization",
-      "Emergency and disaster-relief water supply"
+      "Emergency water supply",
     ],
-
     risks: [
-      "High operational and energy costs",
-      "Brine and concentrate disposal challenges",
-      "Membrane degradation under extreme conditions"
+      "High operational cost",
+      "Brine disposal challenges",
     ],
-
     mitigation: [
-      "Zero Liquid Discharge (ZLD) systems",
-      "Brine recovery and salt harvesting",
-      "Energy recovery devices and hybrid treatment designs"
+      "Zero Liquid Discharge systems",
+      "Energy recovery devices",
+      "Brine recovery and reuse",
     ],
-
-    visuals: []
-  }
+    visuals: [],
+  },
 };
 
-/* ===============================
-   COMPONENT
-================================ */
+/* ======================================================
+   LIVE DASHBOARD COMPONENT
+====================================================== */
 export default function LiveDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
   const [activeMetric, setActiveMetric] = useState<
@@ -300,34 +252,9 @@ export default function LiveDashboard() {
 
   const slCounter = useRef(1);
 
-  /* ===============================
-     NORMALIZATION
-  ================================ */
-  const normalizeRow = (
-    raw: any,
-    source: "simulation" | "live"
-  ): Row | null => {
-    if (
-      typeof raw.ph !== "number" ||
-      typeof raw.tds !== "number" ||
-      typeof raw.turbidity !== "number"
-    ) {
-      return null;
-    }
-
-    return {
-      slNo: slCounter.current++,
-      time: raw.time ?? new Date().toLocaleTimeString(),
-      ph: raw.ph,
-      turbidity: raw.turbidity,
-      tds: raw.tds,
-      source,
-    };
-  };
-
-  /* ===============================
-     AVERAGES
-  ================================ */
+  /* ======================================================
+     AVERAGES (SAFE)
+  ====================================================== */
   const avg = {
     ph: rows.length ? rows.reduce((s, r) => s + r.ph, 0) / rows.length : 0,
     turbidity: rows.length
@@ -336,9 +263,9 @@ export default function LiveDashboard() {
     tds: rows.length ? rows.reduce((s, r) => s + r.tds, 0) / rows.length : 0,
   };
 
-  /* ===============================
-     SIMULATION MODE (HARD STOP)
-  ================================ */
+  /* ======================================================
+     SIMULATION MODE (HARD STOP @ 10)
+  ====================================================== */
   useEffect(() => {
     if (mode !== "simulation") return;
     if (rows.length >= MAX_ROWS) return;
@@ -347,130 +274,75 @@ export default function LiveDashboard() {
       setRows((prev) => {
         if (prev.length >= MAX_ROWS) return prev;
 
-        const simulated = normalizeRow(
+        return [
+          ...prev,
           {
+            slNo: slCounter.current++,
+            time: new Date().toLocaleTimeString(),
             ph: Number((6.5 + Math.random()).toFixed(2)),
             turbidity: Number((2 + Math.random()).toFixed(2)),
             tds: Number((150 + Math.random() * 15).toFixed(1)),
+            source: "simulation",
           },
-          "simulation"
-        );
-
-        if (!simulated) return prev;
-        return [...prev, simulated];
+        ];
       });
     }, INTERVAL_MS);
 
     return () => clearInterval(id);
   }, [mode, rows.length]);
 
-  /* ===============================
-     LIVE MODE (AUTO FALLBACK)
-  ================================ */
-  useEffect(() => {
-    if (mode !== "live") return;
-    if (rows.length >= MAX_ROWS) return;
-
-    const id = setInterval(async () => {
-      try {
-        const res = await fetch(BACKEND_LATEST_URL);
-        if (!res.ok) throw new Error();
-
-        const raw = await res.json();
-        const normalized = normalizeRow(raw, "live");
-        if (!normalized) return;
-
-        setRows((prev) => {
-          if (prev.length >= MAX_ROWS) return prev;
-          return [...prev, normalized];
-        });
-      } catch {
-        setMode("simulation");
-      }
-    }, INTERVAL_MS);
-
-    return () => clearInterval(id);
-  }, [mode, rows.length]);
-
-  /* ===============================
+  /* ======================================================
      RUN PREDICTION + SAVE ITERATION
-  ================================ */
+  ====================================================== */
   const runPrediction = async () => {
     if (rows.length !== MAX_ROWS) return;
 
-    try {
-      const res = await fetch(BACKEND_ANALYZE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(avg),
-      });
+    const res = await fetch(BACKEND_ANALYZE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(avg),
+    });
 
-      const result = await res.json();
-      setPrediction(result);
+    const result = await res.json();
+    setPrediction(result);
 
-      const iteration: Iteration = {
-        id: crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
-        mode,
-        rows: [...rows],
-        avg,
-        prediction: {
-          reusable: result.reusable,
-          tank: result.tank,
-          filtrationBracket: result.filtrationBracket,
-        },
-      };
+    const iteration: Iteration = {
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      mode,
+      rows: [...rows],
+      avg,
+      prediction: {
+        reusable: result.reusable,
+        tank: result.tank,
+        filtrationBracket: result.filtrationBracket,
+      },
+    };
 
-      const existing: Iteration[] = JSON.parse(
-        localStorage.getItem("waterIQ_iterations") || "[]"
-      );
+    const existing: Iteration[] = JSON.parse(
+      localStorage.getItem("waterIQ_iterations") || "[]"
+    );
 
-      localStorage.setItem(
-        "waterIQ_iterations",
-        JSON.stringify([...existing, iteration])
-      );
-    } catch (err) {
-      console.error("Prediction failed", err);
-    }
+    localStorage.setItem(
+      "waterIQ_iterations",
+      JSON.stringify([...existing, iteration])
+    );
   };
+
+  const filtrationInfo =
+    prediction && prediction.filtrationBracket
+      ? FILTRATION_LIBRARY[prediction.filtrationBracket]
+      : null;
 
   return (
     <div style={{ padding: 24 }}>
       <h1>Live Dashboard</h1>
 
-      {/* DEPLOY BUTTONS */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
-        <button
-          onClick={() => setMode("simulation")}
-          style={{
-            padding: "10px 18px",
-            borderRadius: 10,
-            background: "linear-gradient(135deg,#22c55e,#16a34a)",
-            color: "#fff",
-            border: "none",
-            fontWeight: 600,
-          }}
-        >
-          Deploy Simulation
-        </button>
+      <button onClick={() => setMode("simulation")}>
+        Deploy Simulation
+      </button>
 
-        <button
-          onClick={() => setMode("live")}
-          style={{
-            padding: "10px 18px",
-            borderRadius: 10,
-            background: "linear-gradient(135deg,#22c55e,#16a34a)",
-            color: "#fff",
-            border: "none",
-            fontWeight: 600,
-          }}
-        >
-          Deploy Live Sensors
-        </button>
-      </div>
-
-      {/* METRIC CARDS */}
-      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
+      <div style={{ display: "flex", gap: 16, marginTop: 24 }}>
         <MetricCard title="pH" valueKey="ph" rows={rows} avg={avg.ph}
           onClick={() => rows.length && setActiveMetric("ph")} />
         <MetricCard title="TDS" valueKey="tds" rows={rows} avg={avg.tds}
@@ -483,27 +355,17 @@ export default function LiveDashboard() {
       <DatasetTable rows={rows} />
 
       {rows.length === MAX_ROWS && (
-        <button
-          onClick={runPrediction}
-          style={{
-            marginTop: 20,
-            padding: "14px 22px",
-            borderRadius: 12,
-            background: "#052e16",
-            color: "#22c55e",
-            border: "1px solid #22c55e",
-            fontWeight: 700,
-          }}
-        >
+        <button onClick={runPrediction} style={{ marginTop: 24 }}>
           Run Prediction Model
         </button>
       )}
 
-      {prediction && (
-        <div style={{ marginTop: 20 }}>
-          <p><b>Reusable:</b> {prediction.reusable}</p>
-          <p><b>Tank:</b> {prediction.tank}</p>
-          <p><b>Bracket:</b> {prediction.filtrationBracket}</p>
+      {filtrationInfo && (
+        <div style={{ marginTop: 32 }}>
+          <h2>{filtrationInfo.title}</h2>
+          <p><b>Tank:</b> {filtrationInfo.tank}</p>
+          <p><b>Status:</b> {filtrationInfo.status}</p>
+          <p>{filtrationInfo.explanation}</p>
         </div>
       )}
 
