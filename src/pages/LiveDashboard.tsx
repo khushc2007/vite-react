@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import MetricCard from "../components/MetricCard";
 import DatasetTable from "../components/DatasetTable";
 import ChartModal from "../components/ChartModal";
+import { saveIteration } from "../store/IterationStore";
 
 const BACKEND_ANALYZE_URL =
   "https://water-quality-backend-8-ffv5.onrender.com/analyze-water";
@@ -209,6 +210,22 @@ export default function LiveDashboard() {
 
       const result = await res.json();
       setPrediction(result);
+      const iteration = {
+  id: crypto.randomUUID(),
+  name: `Iteration ${new Date().toLocaleTimeString()}`,
+  timestamp: new Date().toISOString(),
+  mode,
+  rows,
+  avg,
+  prediction: {
+    reusable: result.reusable,
+    tank: result.tank,
+    filtrationBracket: result.filtrationBracket,
+  },
+};
+
+saveIteration(iteration);
+
       saveIteration(result); // 🔐 LAYER 2 HOOK
     } catch (err) {
       console.error("Prediction failed", err);
