@@ -1,14 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
-/* SIDEBAR */
 import Sidebar from "./components/Sidebar";
 
 /* PAGES */
+import Home from "./pages/Home";
 import LiveDashboard from "./pages/LiveDashboard";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
-
-/* APPLICATION PAGES */
 import Aquaculture from "./pages/applications/Aquaculture";
 import Agriculture from "./pages/applications/Agriculture";
 import Industrial from "./pages/applications/Industrial";
@@ -19,15 +16,16 @@ export default function App() {
       <div
         style={{
           display: "flex",
-          minHeight: "100vh",
+          height: "100vh",
           background: "#020617",
+          color: "#ecfdf5",
         }}
       >
         {/* SIDEBAR */}
         <Sidebar />
 
         {/* MAIN CONTENT */}
-        <div
+        <main
           style={{
             flex: 1,
             overflowY: "auto",
@@ -35,7 +33,10 @@ export default function App() {
         >
           <Routes>
             {/* DEFAULT */}
-            <Route path="/" element={<Navigate to="/live" replace />} />
+            <Route path="/" element={<Navigate to="/home" replace />} />
+
+            {/* HOME */}
+            <Route path="/home" element={<Home />} />
 
             {/* CORE */}
             <Route path="/live" element={<LiveDashboard />} />
@@ -56,10 +57,10 @@ export default function App() {
               element={<Industrial />}
             />
 
-            {/* FALLBACK */}
-            <Route path="*" element={<Navigate to="/live" replace />} />
+            {/* SAFETY FALLBACK */}
+            <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>
-        </div>
+        </main>
       </div>
     </BrowserRouter>
   );
