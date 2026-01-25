@@ -3,7 +3,8 @@ import MetricCard from "../components/MetricCard";
 import DatasetTable from "../components/DatasetTable";
 import ChartModal from "../components/ChartModal";
 
-const BACKEND_URL = "https://water-quality-backend-8-ffv5.onrender.com/analyze-water"; // 🔴 CHANGE THIS
+const BACKEND_URL =
+  "https://water-quality-backend-8-ffv5.onrender.com";
 const INTERVAL_MS = 4000;
 const MAX_ROWS = 10;
 
@@ -21,18 +22,21 @@ export default function LiveDashboard() {
     "ph" | "tds" | "turbidity" | null
   >(null);
   const [prediction, setPrediction] = useState<any>(null);
+  const [isDeployed, setIsDeployed] = useState(false);
 
-  const slCounter = useRef(1); // prevents reset on re-render
+  const slCounter = useRef(1);
 
   /* ===============================
      CONTINUOUS BACKEND POLLING
+     (ONLY AFTER DEPLOY)
   ================================ */
   useEffect(() => {
+    if (!isDeployed) return;
+
     const id = setInterval(async () => {
       try {
         const res = await fetch(`${BACKEND_URL}/latest`);
         const data = await res.json();
-
         if (!data) return;
 
         setRows((prev) => {
@@ -53,20 +57,17 @@ export default function LiveDashboard() {
     }, INTERVAL_MS);
 
     return () => clearInterval(id);
-  }, []);
+  }, [isDeployed]);
 
   /* ===============================
-     AVERAGES (DERIVED, NOT STORED)
+     AVERAGES (DERIVED)
   ================================ */
   const avg = rows.length
     ? {
-        ph:
-          rows.reduce((s, r) => s + r.ph, 0) / rows.length,
+        ph: rows.reduce((s, r) => s + r.ph, 0) / rows.length,
         turbidity:
-          rows.reduce((s, r) => s + r.turbidity, 0) /
-          rows.length,
-        tds:
-          rows.reduce((s, r) => s + r.tds, 0) / rows.length,
+          rows.reduce((s, r) => s + r.turbidity, 0) / rows.length,
+        tds: rows.reduce((s, r) => s + r.tds, 0) / rows.length,
       }
     : null;
 
@@ -91,37 +92,64 @@ export default function LiveDashboard() {
   };
 
   return (
-    <div>
-      <h1>Live Dashboard</h1>
+    <div style={{ padding: 24 }}>
+      {/* ===== HEADER ===== */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 24,
+        }}
+      >
+        <h1>Live Dashboard</h1>
 
-      {/* ===== METRIC CARDS ===== */}
-      {avg && (
-        <div style={{ display: "flex", gap: 16 }}>
-          <MetricCard
-            title="pH"
-            valueKey="ph"
-            rows={rows}
-            avg={avg.ph}
-            onClick={() => setActiveMetric("ph")}
-          />
-          <MetricCard
-            title="TDS"
-            valueKey="tds"
-            rows={rows}
-            avg={avg.tds}
-            onClick={() => setActiveMetric("tds")}
-          />
-          <MetricCard
-            title="Turbidity"
-            valueKey="turbidity"
-            rows={rows}
-            avg={avg.turbidity}
-            onClick={() => setActiveMetric("turbidity")}
-          />
-        </div>
-      )}
+        <button
+          onClick={() => setIsDeployed(true)}
+          disabled={isDeployed}
+          style={{
+            padding: "12px 20px",
+            borderRadius: 10,
+            background: isDeployed
+              ? "#475569"
+              : "linear-gradient(135deg,#22c55e,#16a34a)",
+            color: "#fff",
+            border: "none",
+            cursor: isDeployed ? "not-allowed" : "pointer",
+            fontSize: 15,
+            fontWeight: 600,
+          }}
+        >
+          {isDeployed ? "Reading Deployed" : "Deploy Reading"}
+        </button>
+      </div>
 
-      {/* ===== DATA TABLE ===== */}
+      {/* ===== METRIC CARDS (ALWAYS VISIBLE) ===== */}
+      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
+        <MetricCard
+          title="pH"
+          valueKey="ph"
+          rows={rows}
+          avg={avg?.ph ?? null}
+          onClick={() => rows.length && setActiveMetric("ph")}
+        />
+        <MetricCard
+          title="TDS"
+          valueKey="tds"
+          rows={rows}
+          avg={avg?.tds ?? null}
+          onClick={() => rows.length && setActiveMetric("tds")}
+        />
+        <MetricCard
+          title="Turbidity"
+          valueKey="turbidity"
+          rows={rows}
+          avg={avg?.turbidity ?? null}
+          onClick={() => rows.length && setActiveMetric("turbidity")}
+        />
+      </div>
+
+      {/* ===== DATA TABLE (ALWAYS VISIBLE) ===== */}
       <DatasetTable rows={rows} />
 
       {/* ===== RUN MODEL ===== */}
@@ -129,14 +157,16 @@ export default function LiveDashboard() {
         <button
           onClick={runPrediction}
           style={{
-            marginTop: 20,
+            marginTop: 24,
             padding: "14px 22px",
-            fontSize: "16px",
-            borderRadius: "10px",
-            background: "linear-gradient(135deg,#22c55e,#16a34a)",
+            fontSize: 16,
+            borderRadius: 12,
+            background:
+              "linear-gradient(135deg,#22c55e,#16a34a)",
             color: "#fff",
             border: "none",
             cursor: "pointer",
+            fontWeight: 600,
           }}
         >
           Run Prediction Model
@@ -149,7 +179,7 @@ export default function LiveDashboard() {
           style={{
             marginTop: 24,
             padding: 20,
-            borderRadius: 12,
+            borderRadius: 14,
             background: "#052e16",
           }}
         >
