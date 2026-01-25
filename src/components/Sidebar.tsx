@@ -39,6 +39,7 @@ export default function Sidebar() {
         padding: "16px",
         height: "100vh",
         boxSizing: "border-box",
+        borderRight: "1px solid #1e293b",
       }}
     >
       <h2 style={{ color: "#ffffff", marginBottom: "20px" }}>
@@ -56,6 +57,19 @@ export default function Sidebar() {
 
         {homeOpen && (
           <>
+            {/* NEW HOME OVERVIEW */}
+            <NavLink
+              to="/home"
+              style={({ isActive }) =>
+                isActive
+                  ? { ...linkStyle, ...activeLinkStyle }
+                  : linkStyle
+              }
+            >
+              Overview
+            </NavLink>
+
+            {/* EXISTING LINKS */}
             <NavLink
               to="/live"
               style={({ isActive }) =>
