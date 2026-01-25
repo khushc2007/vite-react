@@ -1,4 +1,4 @@
-export default function DatasetTable({ rows }: any) {
+export default function DatasetTable({ rows = [] }: { rows: any[] }) {
   return (
     <div
       style={{
@@ -27,8 +27,17 @@ export default function DatasetTable({ rows }: any) {
             <th>Turbidity</th>
           </tr>
         </thead>
+
         <tbody>
-          {rows.map((r: any) => (
+          {rows.length === 0 && (
+            <tr>
+              <td colSpan={5} style={{ textAlign: "center", opacity: 0.6 }}>
+                Waiting for sensor data…
+              </td>
+            </tr>
+          )}
+
+          {rows.map((r) => (
             <tr key={r.slNo}>
               <td>{r.slNo}</td>
               <td>{r.time}</td>
