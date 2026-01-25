@@ -6,6 +6,7 @@ import Applications from "./pages/applications/Applications";
 import Aquaculture from "./pages/applications/Aquaculture";
 import Agriculture from "./pages/applications/Agriculture";
 import Industrial from "./pages/applications/Industrial";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // placeholders if not ready
 const LiveDashboard = () => <div>Live Dashboard</div>;
@@ -18,7 +19,14 @@ export default function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/live-dashboard" element={<LiveDashboard />} />
+          <Route
+  path="/live"
+  element={
+    <ErrorBoundary>
+      <LiveDashboard />
+    </ErrorBoundary>
+  }
+/>
           <Route path="/history" element={<History />} />
           <Route path="/settings" element={<Settings />} />
 
