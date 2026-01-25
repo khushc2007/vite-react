@@ -11,6 +11,7 @@ const sectionTitle = {
   color: "#9aa4b2",
   marginBottom: "6px",
   marginTop: "14px",
+  cursor: "pointer",
 };
 
 const linkStyle = {
@@ -40,7 +41,9 @@ export default function Sidebar() {
         boxSizing: "border-box",
       }}
     >
-      <h2 style={{ color: "#ffffff", marginBottom: "20px" }}>Water IQ</h2>
+      <h2 style={{ color: "#ffffff", marginBottom: "20px" }}>
+        Water IQ
+      </h2>
 
       {/* HOME SECTION */}
       <div style={sectionStyle}>
@@ -54,7 +57,7 @@ export default function Sidebar() {
         {homeOpen && (
           <>
             <NavLink
-              to="/dashboard"
+              to="/live"
               style={({ isActive }) =>
                 isActive
                   ? { ...linkStyle, ...activeLinkStyle }
