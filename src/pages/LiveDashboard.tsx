@@ -27,8 +27,22 @@ export default function LiveDashboard() {
   const slCounter = useRef(1);
 
   /* ===============================
-     CONTINUOUS BACKEND POLLING
-     (ONLY AFTER DEPLOY)
+     SAFE AVERAGES (NEVER NULL)
+  ================================ */
+  const avg = {
+    ph: rows.length
+      ? rows.reduce((s, r) => s + r.ph, 0) / rows.length
+      : 0,
+    turbidity: rows.length
+      ? rows.reduce((s, r) => s + r.turbidity, 0) / rows.length
+      : 0,
+    tds: rows.length
+      ? rows.reduce((s, r) => s + r.tds, 0) / rows.length
+      : 0,
+  };
+
+  /* ===============================
+     POLLING (ONLY AFTER DEPLOY)
   ================================ */
   useEffect(() => {
     if (!isDeployed) return;
@@ -42,14 +56,12 @@ export default function LiveDashboard() {
         setRows((prev) => {
           const next: Row = {
             slNo: slCounter.current++,
-            time: data.time,
-            ph: data.ph,
-            turbidity: data.turbidity,
-            tds: data.tds,
+            time: data.time ?? new Date().toLocaleTimeString(),
+            ph: Number(data.ph),
+            turbidity: Number(data.turbidity),
+            tds: Number(data.tds),
           };
-
-          const updated = [...prev, next];
-          return updated.slice(-MAX_ROWS);
+          return [...prev, next].slice(-MAX_ROWS);
         });
       } catch (err) {
         console.error("Backend not reachable", err);
@@ -60,22 +72,10 @@ export default function LiveDashboard() {
   }, [isDeployed]);
 
   /* ===============================
-     AVERAGES (DERIVED)
-  ================================ */
-  const avg = rows.length
-    ? {
-        ph: rows.reduce((s, r) => s + r.ph, 0) / rows.length,
-        turbidity:
-          rows.reduce((s, r) => s + r.turbidity, 0) / rows.length,
-        tds: rows.reduce((s, r) => s + r.tds, 0) / rows.length,
-      }
-    : null;
-
-  /* ===============================
-     RUN PREDICTION MODEL
+     RUN PREDICTION
   ================================ */
   const runPrediction = async () => {
-    if (!avg) return;
+    if (!rows.length) return;
 
     try {
       const res = await fetch(`${BACKEND_URL}/analyze-water`, {
@@ -115,41 +115,46 @@ export default function LiveDashboard() {
               : "linear-gradient(135deg,#22c55e,#16a34a)",
             color: "#fff",
             border: "none",
-            cursor: isDeployed ? "not-allowed" : "pointer",
-            fontSize: 15,
             fontWeight: 600,
+            cursor: isDeployed ? "not-allowed" : "pointer",
           }}
         >
           {isDeployed ? "Reading Deployed" : "Deploy Reading"}
         </button>
       </div>
 
-      {/* ===== METRIC CARDS (ALWAYS VISIBLE) ===== */}
+      {/* ===== METRIC CARDS ===== */}
       <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
         <MetricCard
           title="pH"
           valueKey="ph"
           rows={rows}
-          avg={avg?.ph ?? null}
-          onClick={() => rows.length && setActiveMetric("ph")}
+          avg={avg.ph}
+          onClick={() =>
+            rows.length > 0 && setActiveMetric("ph")
+          }
         />
         <MetricCard
           title="TDS"
           valueKey="tds"
           rows={rows}
-          avg={avg?.tds ?? null}
-          onClick={() => rows.length && setActiveMetric("tds")}
+          avg={avg.tds}
+          onClick={() =>
+            rows.length > 0 && setActiveMetric("tds")
+          }
         />
         <MetricCard
           title="Turbidity"
           valueKey="turbidity"
           rows={rows}
-          avg={avg?.turbidity ?? null}
-          onClick={() => rows.length && setActiveMetric("turbidity")}
+          avg={avg.turbidity}
+          onClick={() =>
+            rows.length > 0 && setActiveMetric("turbidity")
+          }
         />
       </div>
 
-      {/* ===== DATA TABLE (ALWAYS VISIBLE) ===== */}
+      {/* ===== DATA TABLE ===== */}
       <DatasetTable rows={rows} />
 
       {/* ===== RUN MODEL ===== */}
@@ -187,14 +192,11 @@ export default function LiveDashboard() {
           <p><b>Reusable:</b> {prediction.reusable}</p>
           <p><b>Tank:</b> {prediction.tank}</p>
           <p><b>Filtration Bracket:</b> {prediction.filtrationBracket}</p>
-          {prediction.filtrationMethod && (
-            <p><b>Method:</b> {prediction.filtrationMethod}</p>
-          )}
         </div>
       )}
 
       {/* ===== CHART MODAL ===== */}
-      {activeMetric && (
+      {activeMetric && rows.length > 0 && (
         <ChartModal
           metric={activeMetric}
           rows={rows}
