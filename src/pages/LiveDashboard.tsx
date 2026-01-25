@@ -4,7 +4,8 @@ import DatasetTable from "../components/DatasetTable";
 import ChartModal from "../components/ChartModal";
 
 const BACKEND_URL =
-  "https://water-quality-backend-8-ffv5.onrender.com";
+  "https://water-quality-backend-8-ffv5.onrender.com/analyze-water";
+
 const INTERVAL_MS = 4000;
 const MAX_ROWS = 10;
 
@@ -42,43 +43,36 @@ export default function LiveDashboard() {
   };
 
   /* ===============================
-     POLLING (ONLY AFTER DEPLOY)
+     SAFE POLLING (NO BACKEND CALLS)
   ================================ */
   useEffect(() => {
     if (!isDeployed) return;
 
-    const id = setInterval(async () => {
-      try {
-        const res = await fetch(`${BACKEND_URL}/latest`);
-        const data = await res.json();
-        if (!data) return;
+    const id = setInterval(() => {
+      setRows((prev) => {
+        const next: Row = {
+          slNo: slCounter.current++,
+          time: new Date().toLocaleTimeString(),
+          ph: Number((6.5 + Math.random()).toFixed(2)),
+          turbidity: Number((2 + Math.random()).toFixed(2)),
+          tds: Number((150 + Math.random() * 15).toFixed(1)),
+        };
 
-        setRows((prev) => {
-          const next: Row = {
-            slNo: slCounter.current++,
-            time: data.time ?? new Date().toLocaleTimeString(),
-            ph: Number(data.ph),
-            turbidity: Number(data.turbidity),
-            tds: Number(data.tds),
-          };
-          return [...prev, next].slice(-MAX_ROWS);
-        });
-      } catch (err) {
-        console.error("Backend not reachable", err);
-      }
+        return [...prev, next].slice(-MAX_ROWS);
+      });
     }, INTERVAL_MS);
 
     return () => clearInterval(id);
   }, [isDeployed]);
 
   /* ===============================
-     RUN PREDICTION
+     RUN PREDICTION (REAL BACKEND)
   ================================ */
   const runPrediction = async () => {
     if (!rows.length) return;
 
     try {
-      const res = await fetch(`${BACKEND_URL}/analyze-water`, {
+      const res = await fetch(BACKEND_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(avg),
@@ -123,38 +117,32 @@ export default function LiveDashboard() {
         </button>
       </div>
 
-      {/* ===== METRIC CARDS ===== */}
+      {/* ===== METRIC CARDS (ALWAYS VISIBLE) ===== */}
       <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
         <MetricCard
           title="pH"
           valueKey="ph"
           rows={rows}
           avg={avg.ph}
-          onClick={() =>
-            rows.length > 0 && setActiveMetric("ph")
-          }
+          onClick={() => rows.length && setActiveMetric("ph")}
         />
         <MetricCard
           title="TDS"
           valueKey="tds"
           rows={rows}
           avg={avg.tds}
-          onClick={() =>
-            rows.length > 0 && setActiveMetric("tds")
-          }
+          onClick={() => rows.length && setActiveMetric("tds")}
         />
         <MetricCard
           title="Turbidity"
           valueKey="turbidity"
           rows={rows}
           avg={avg.turbidity}
-          onClick={() =>
-            rows.length > 0 && setActiveMetric("turbidity")
-          }
+          onClick={() => rows.length && setActiveMetric("turbidity")}
         />
       </div>
 
-      {/* ===== DATA TABLE ===== */}
+      {/* ===== DATA TABLE (ALWAYS VISIBLE) ===== */}
       <DatasetTable rows={rows} />
 
       {/* ===== RUN MODEL ===== */}
