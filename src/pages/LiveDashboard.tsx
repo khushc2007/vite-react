@@ -435,9 +435,7 @@ const secondaryButtonStyle = {
 >
   Run Prediction Model
 </button>
-          Run Prediction Model
-        </button>
-      )}
+       )}
 
      {filtrationInfo && (
   <div
