@@ -7,10 +7,10 @@ import ChartModal from "../components/ChartModal";
    BACKEND ENDPOINTS
 ====================================================== */
 const BACKEND_ANALYZE_URL =
-  "https://water-quality-backend-8-ffv5.onrender.com/analyze-water";
+  "https://water-quality-backend-9-o4p1.onrender.com/analyze-water";
 
 const BACKEND_LATEST_URL =
-  "https://water-quality-backend-8-ffv5.onrender.com/latest";
+  "https://water-quality-backend-9-o4p1.onrender.com/latest";
 
 /* ======================================================
    CONFIG
