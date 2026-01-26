@@ -296,32 +296,26 @@ useEffect(() => {
   if (mode !== "live") return;
   if (rows.length >= MAX_ROWS) return;
 
-  const id = setInterval(async () => {
-    try {
-      const res = await fetch(BACKEND_LATEST_URL);
-      if (!res.ok) throw new Error("Backend down");
+  const id =setInterval(async () => {
+  const res = await fetch(BACKEND_LATEST_URL);
+  const data = await res.json();
 
-      const data = await res.json();
+  setRows((prev) => {
+    if (prev.length >= MAX_ROWS) return prev;
 
-      setRows((prev) => {
-        if (prev.length >= MAX_ROWS) return prev;
-
-        return [
-          ...prev,
-          {
-            slNo: slCounter.current++,
-            time: data.time ?? new Date().toLocaleTimeString(),
-            ph: data.ph,
-            turbidity: data.turbidity,
-            tds: data.tds,
-            source: "live",
-          },
-        ];
-      });
-    }catch (err) {
-  console.error("Live backend error:", err);
-}
-  }, INTERVAL_MS);
+    return [
+      ...prev,
+      {
+        slNo: slCounter.current++,
+        time: data.time ?? new Date().toLocaleTimeString(),
+        ph: data.ph,
+        turbidity: data.turbidity,
+        tds: data.tds,
+        source: "live",
+      },
+    ];
+  });
+}, INTERVAL_MS);
 
   return () => clearInterval(id);
 }, [mode, rows.length]);
