@@ -324,29 +324,40 @@ useEffect(() => {
   /* ======================================================
      SIMULATION MODE
   ====================================================== */
-  useEffect(() => {
-    if (mode !== "simulation" || rows.length >= MAX_ROWS) return;
+ useEffect(() => {
+  if (mode !== "live") return;
+  if (rows.length >= MAX_ROWS) return;
 
-    const id = setInterval(() => {
-      setRows((p) =>
-        p.length >= MAX_ROWS
-          ? p
-          : [
-              ...p,
-              {
-                slNo: slCounter.current++,
-                time: new Date().toLocaleTimeString(),
-                ph: +(6.5 + Math.random()).toFixed(2),
-                turbidity: +(2 + Math.random()).toFixed(2),
-                tds: +(150 + Math.random() * 15).toFixed(1),
-                source: "simulation",
-              },
-            ]
-      );
-    }, INTERVAL_MS);
+  const id = setInterval(async () => {
+    try {
+      const res = await fetch(BACKEND_LATEST_URL);
+      if (!res.ok) throw new Error("Live backend unavailable");
 
-    return () => clearInterval(id);
-  }, [mode, rows.length]);
+      const data = await res.json();
+
+      setRows((prev) => {
+        if (prev.length >= MAX_ROWS) return prev;
+
+        return [
+          ...prev,
+          {
+            slNo: slCounter.current++,
+            time: data.time ?? new Date().toLocaleTimeString(),
+            ph: data.ph,
+            turbidity: data.turbidity,
+            tds: data.tds,
+            source: "live",
+          },
+        ];
+      });
+    } catch (err) {
+      console.error("Live polling error:", err);
+      // DO NOT change mode here
+    }
+  }, INTERVAL_MS);
+
+  return () => clearInterval(id);
+}, [mode, rows.length]);
 
   /* ======================================================
      RUN PREDICTION
