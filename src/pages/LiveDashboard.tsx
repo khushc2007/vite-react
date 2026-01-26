@@ -432,7 +432,23 @@ const avg = {
           marginBottom: 24,
         }}
       >
-        <h1>Live Dashboard</h1>
+        <h1>
+  Live Dashboard{" "}
+  <span
+    style={{
+      marginLeft: 12,
+      padding: "4px 10px",
+      borderRadius: 12,
+      fontSize: 14,
+      fontWeight: 700,
+      background: mode === "live" ? "#14532d" : "#1e293b",
+      color: mode === "live" ? "#22c55e" : "#38bdf8",
+    }}
+  >
+    {mode === "live" ? "LIVE MODE" : "SIMULATION MODE"}
+  </span>
+</h1>
+
 
         <div style={{ display: "flex", gap: 12 }}>
           <button
