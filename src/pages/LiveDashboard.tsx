@@ -15,6 +15,14 @@ const BACKEND_LATEST_URL =
 const BACKEND_SESSION_START_URL =
   "https://water-quality-backend-9-o4p1.onrender.com/session/start";
 
+const BACKEND_SESSION_STATUS_URL =
+  "https://water-quality-backend-9-o4p1.onrender.com/session/status";
+
+const BACKEND_SESSION_RESET_URL =
+  "https://water-quality-backend-9-o4p1.onrender.com/session/reset";
+
+
+
 /* ======================================================
    CONFIG
 ====================================================== */
@@ -247,6 +255,12 @@ const startSimulation = () => {
   setReadyToSave(false);
   slCounter.current = 1;
 };
+   const [sessionStatus, setSessionStatus] = useState<{
+  active: boolean;
+  completed: boolean;
+  collected: number;
+} | null>(null);
+
 
   const slCounter = useRef(1);
   const clickCounter = useRef(0);
@@ -317,6 +331,33 @@ useEffect(() => {
 
   return () => clearInterval(id);
 }, [mode, rows.length]);
+
+      useEffect(() => {
+  if (mode !== "live") return;
+
+  const id = setInterval(async () => {
+    try {
+      const res = await fetch(BACKEND_SESSION_STATUS_URL);
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setSessionStatus(data);
+    } catch (err) {
+      console.error("Session status fetch failed", err);
+    }
+  }, 2000);
+
+  return () => clearInterval(id);
+}, [mode]);
+      useEffect(() => {
+  // whenever we LEAVE live mode, reset backend session
+  if (mode !== "live") {
+    fetch(BACKEND_SESSION_RESET_URL, { method: "POST" }).catch(() => {});
+    setSessionStatus(null);
+  }
+}, [mode]);
+
+
    
   
   
@@ -368,14 +409,27 @@ useEffect(() => {
     return;
   }
 
-  const res = await fetch(BACKEND_ANALYZE_URL, {
-    method: "POST",
-  });
+  try {
+    const res = await fetch(BACKEND_ANALYZE_URL, {
+      method: "POST",
+    });
 
-  const result = await res.json();
-  setPrediction(result);
-  setReadyToSave(true);
+    const result = await res.json();
+
+    // 🔴 HANDLE BACKEND ERRORS SAFELY
+    if (!res.ok || result.error) {
+      alert(result.error || "Prediction failed");
+      return;
+    }
+
+    setPrediction(result);
+    setReadyToSave(true);
+  } catch (err) {
+    console.error("Prediction request failed", err);
+    alert("Backend unavailable. Try again.");
+  }
 };
+
     
 
     const result = await res.json();
@@ -488,8 +542,16 @@ const avg = {
       </div>
 
       <DatasetTable rows={rows} />
+       {mode === "live" && sessionStatus && !sessionStatus.completed && (
+  <p style={{ marginTop: 12, color: "#22c55e", fontWeight: 600 }}>
+    Collecting data ({sessionStatus.collected}/{MAX_ROWS})
+  </p>
+)}
 
-      {rows.length === MAX_ROWS && (
+
+      {mode === "live" &&
+  sessionStatus?.collected === MAX_ROWS && (
+
         <button
   onClick={runPrediction}
   style={{
