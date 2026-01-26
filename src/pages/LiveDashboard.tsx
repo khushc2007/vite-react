@@ -310,16 +310,8 @@ useEffect(() => {
   return () => clearInterval(id);
 }, [mode, rows.length]);
    
-  /* ======================================================
-     AVERAGES
-  ====================================================== */
-  const avg = {
-    ph: rows.length ? rows.reduce((s, r) => s + r.ph, 0) / rows.length : 0,
-    turbidity: rows.length
-      ? rows.reduce((s, r) => s + r.turbidity, 0) / rows.length
-      : 0,
-    tds: rows.length ? rows.reduce((s, r) => s + r.tds, 0) / rows.length : 0,
-  };
+  
+  
 
   /* ======================================================
      SIMULATION MODE
@@ -411,8 +403,16 @@ useEffect(() => {
   };
 
   const filtrationInfo =
-    prediction && FILTRATION_LIBRARY[prediction.filtrationBracket];
-
+  prediction?.filtrationBracket
+    ? FILTRATION_LIBRARY[prediction.filtrationBracket]
+    : null;
+const avg = {
+    ph: rows.length ? rows.reduce((s, r) => s + r.ph, 0) / rows.length : 0,
+    turbidity: rows.length
+      ? rows.reduce((s, r) => s + r.turbidity, 0) / rows.length
+      : 0,
+    tds: rows.length ? rows.reduce((s, r) => s + r.tds, 0) / rows.length : 0,
+  };
   return (
     <div style={{ padding: 24 }}>
       {/* TOP BAR */}
