@@ -12,6 +12,9 @@ const BACKEND_ANALYZE_URL =
 const BACKEND_LATEST_URL =
   "https://water-quality-backend-9-o4p1.onrender.com/latest";
 
+const BACKEND_SESSION_START_URL =
+  "https://water-quality-backend-9-o4p1.onrender.com/session/start";
+
 /* ======================================================
    CONFIG
 ====================================================== */
@@ -259,6 +262,24 @@ const secondaryButtonStyle = {
   fontWeight: 700,
   cursor: "pointer",
 };
+   const startLiveSession = async () => {
+  // reset UI state
+  setRows([]);
+  setPrediction(null);
+  setReadyToSave(false);
+  slCounter.current = 1;
+
+  const res = await fetch(BACKEND_SESSION_START_URL, {
+    method: "POST",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to start backend session");
+  }
+
+  setMode("live");
+  lastModeRef.current = "live";
+};
 
  /* ======================================================
    FALLBACK SESSION (ALL MODES)
@@ -303,10 +324,9 @@ const secretClick = () => {
   clickCounter.current += 1;
 
   if (clickCounter.current >= 10) {
-    setMode("simulation");
-    lastModeRef.current = "simulation";
-    clickCounter.current = 0; // reset
-  }
+  alert("Simulation mode must be activated manually");
+  clickCounter.current = 0;
+}
 };
 
 /* 4️⃣ LIVE MODE FAILOVER */
@@ -336,10 +356,9 @@ useEffect(() => {
           },
         ];
       });
-    } catch {
-      setMode("simulation");
-      lastModeRef.current = "simulation";
-    }
+    }catch (err) {
+  console.error("Live backend error:", err);
+}
   }, INTERVAL_MS);
 
   return () => clearInterval(id);
@@ -387,6 +406,19 @@ useEffect(() => {
      RUN PREDICTION
   ====================================================== */
   const runPrediction = async () => {
+  if (mode !== "live") {
+    alert("Prediction is only available in Live mode");
+    return;
+  }
+
+  const res = await fetch(BACKEND_ANALYZE_URL, {
+    method: "POST",
+  });
+
+  const result = await res.json();
+  setPrediction(result);
+  setReadyToSave(true);
+};
     const res = await fetch(BACKEND_ANALYZE_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -451,10 +483,16 @@ useEffect(() => {
 
 <button
   style={secondaryButtonStyle}
-  onClick={() => setMode("live")}
+  onClick={() => {
+    startLiveSession().catch((err) => {
+      console.error(err);
+      alert("Backend unavailable. Live mode cannot start.");
+    });
+  }}
 >
   Deploy Live Sensors
 </button>
+
 
           
         </div>
