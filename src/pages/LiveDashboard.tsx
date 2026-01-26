@@ -376,11 +376,7 @@ useEffect(() => {
   setPrediction(result);
   setReadyToSave(true);
 };
-    const res = await fetch(BACKEND_ANALYZE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(avg),
-    });
+    
 
     const result = await res.json();
     setPrediction(result);
