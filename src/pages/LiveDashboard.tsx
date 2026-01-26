@@ -12,7 +12,7 @@ const BACKEND_ANALYZE_URL =
 const BACKEND_LATEST_URL =
   "https://water-quality-backend-9-o4p1.onrender.com/latest";
 
-const BACKEND_SESSION_START_URL =
+const BACKEND_SESSION_START_ =
   "https://water-quality-backend-9-o4p1.onrender.com/session/start";
 
 /* ======================================================
@@ -285,49 +285,11 @@ const secondaryButtonStyle = {
    FALLBACK SESSION (ALL MODES)
 ====================================================== */
 
-/* 1️⃣ URL FLAG */
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const flag = params.get("live");
 
-  if (flag === "li") {
-    setMode("live");
-    lastModeRef.current = "live";
-  }
 
-  if (flag === "fa") {
-    setMode("simulation");
-    lastModeRef.current = "simulation";
-  }
-}, []);
 
-/* 2️⃣ KEYBOARD SHORTCUTS */
-useEffect(() => {
-  const handler = (e: KeyboardEvent) => {
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "l") {
-      setMode("live");
-      lastModeRef.current = "live";
-    }
 
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "s") {
-      setMode("simulation");
-      lastModeRef.current = "simulation";
-    }
-  };
 
-  window.addEventListener("keydown", handler);
-  return () => window.removeEventListener("keydown", handler);
-}, []);
-
-/* 3️⃣ SECRET CLICK FALLBACK (HEADER ONLY) */
-const secretClick = () => {
-  clickCounter.current += 1;
-
-  if (clickCounter.current >= 10) {
-  alert("Simulation mode must be activated manually");
-  clickCounter.current = 0;
-}
-};
 
 /* 4️⃣ LIVE MODE FAILOVER */
 useEffect(() => {
@@ -471,7 +433,7 @@ useEffect(() => {
           marginBottom: 24,
         }}
       >
-        <h1 onClick={secretClick}>Live Dashboard</h1>
+        <h1>Live Dashboard</h1>
 
         <div style={{ display: "flex", gap: 12 }}>
           <button
