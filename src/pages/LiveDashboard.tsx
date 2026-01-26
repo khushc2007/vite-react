@@ -12,7 +12,7 @@ const BACKEND_ANALYZE_URL =
 const BACKEND_LATEST_URL =
   "https://water-quality-backend-9-o4p1.onrender.com/latest";
 
-const BACKEND_SESSION_START_ =
+const BACKEND_SESSION_START_URL =
   "https://water-quality-backend-9-o4p1.onrender.com/session/start";
 
 /* ======================================================
@@ -269,17 +269,7 @@ const secondaryButtonStyle = {
   setReadyToSave(false);
   slCounter.current = 1;
 
-  const res = await fetch(BACKEND_SESSION_START_URL, {
-    method: "POST",
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to start backend session");
-  }
-
-  setMode("live");
-  lastModeRef.current = "live";
-};
+  
 
  /* ======================================================
    FALLBACK SESSION (ALL MODES)
