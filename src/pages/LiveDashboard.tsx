@@ -435,7 +435,7 @@ const avg = {
         <h1>Live Dashboard</h1>
 
         <div style={{ display: "flex", gap: 12 }}>
-          <<button
+          <button
   style={secondaryButtonStyle}
   onClick={startSimulation}
 >
