@@ -239,6 +239,14 @@ export default function LiveDashboard() {
   const [mode, setMode] = useState<Mode>("idle");
   const [iterationName, setIterationName] = useState("");
   const [readyToSave, setReadyToSave] = useState(false);
+const startSimulation = () => {
+  // reset UI state
+  setMode("simulation");
+  setRows([]);
+  setPrediction(null);
+  setReadyToSave(false);
+  slCounter.current = 1;
+};
 
   const slCounter = useRef(1);
   const clickCounter = useRef(0);
@@ -427,12 +435,13 @@ const avg = {
         <h1>Live Dashboard</h1>
 
         <div style={{ display: "flex", gap: 12 }}>
-          <button
+          <<button
   style={secondaryButtonStyle}
-  onClick={() => setMode("simulation")}
+  onClick={startSimulation}
 >
   Deploy Simulation
 </button>
+
 
 <button
   style={secondaryButtonStyle}
