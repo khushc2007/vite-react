@@ -10,7 +10,7 @@ const BACKEND_ANALYZE_URL =
   "https://water-quality-backend-9-o4p1.onrender.com/analyze-water";
 
 const BACKEND_LATEST_URL =
-  "https://water-quality-backend-9-o4p1.onrender.com/latest";
+  "https://water-quality-backend-9-o4p1.onrender.com/tank-levels";
 
 const BACKEND_SESSION_START_URL =
   "https://water-quality-backend-9-o4p1.onrender.com/session/start";
@@ -343,9 +343,9 @@ useEffect(() => {
           {
             slNo: slCounter.current++,
             time: data.time ?? new Date().toLocaleTimeString(),
-            ph: data.ph,
-            turbidity: data.turbidity,
-            tds: data.tds,
+            ph: 0,
+            turbidity: 0,
+            tds: 0,
             source: "live",
           },
         ];
