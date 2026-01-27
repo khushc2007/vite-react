@@ -4,7 +4,7 @@ import Sidebar from "./components/Sidebar";
 /* PAGES */
 import Home from "./pages/Home";
 import LiveDashboard from "./pages/LiveDashboard";
-import LiveDashboard from "./pages/TankView";
+import TankView from "./pages/TankView";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 import Aquaculture from "./pages/applications/Aquaculture";
