@@ -67,7 +67,7 @@ export default function Home() {
           color: "#ecfdf5",
         }}
       >
-        Water IQ
+Made IN Bharat
       </h1>
 
       <p
