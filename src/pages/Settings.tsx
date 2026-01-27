@@ -5,7 +5,7 @@ import { useBackendConnectivity } from "../hooks/useBackendConnectivity";
 
 
 const backendConnected = useBackendConnectivity(
-  "https://water-quality-backend-10-kijx.onrender.com/"
+  "https://water-quality-backend-10-kijx.onrender.com/session/status"
 );
 export default function Settings() {
   return (
