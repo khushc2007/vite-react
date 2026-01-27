@@ -7,19 +7,19 @@ import ChartModal from "../components/ChartModal";
    BACKEND ENDPOINTS
 ====================================================== */
 const BACKEND_ANALYZE_URL =
-  "https://water-quality-backend-9-o4p1.onrender.com/analyze-water";
+  "https://water-quality-backend-10-kijx.onrender.com/analyze-water";
 
-const BACKEND_LATEST_URL =
-  "https://water-quality-backend-9-o4p1.onrender.com/tank-levels";
+const BACKEND_SESSION_READINGS_URL =
+  "https://water-quality-backend-10-kijx.onrender.com/session/readings";
 
 const BACKEND_SESSION_START_URL =
-  "https://water-quality-backend-9-o4p1.onrender.com/session/start";
+  "https://water-quality-backend-10-kijx.onrender.com/session/start";
 
 const BACKEND_SESSION_STATUS_URL =
-  "https://water-quality-backend-9-o4p1.onrender.com/session/status";
+  "https://water-quality-backend-10-kijx.onrender.com/session/status";
 
 const BACKEND_SESSION_RESET_URL =
-  "https://water-quality-backend-9-o4p1.onrender.com/session/reset";
+  "https://water-quality-backend-10-kijx.onrender.com/session/reset";
 
 
 
@@ -317,31 +317,34 @@ const secondaryButtonStyle = {
 /* 4️⃣ LIVE MODE FAILOVER */
 useEffect(() => {
   if (mode !== "live") return;
-  if (rows.length >= MAX_ROWS) return;
 
-  const id =setInterval(async () => {
-  const res = await fetch(BACKEND_LATEST_URL);
-  const data = await res.json();
+  const id = setInterval(async () => {
+    try {
+      const res = await fetch(BACKEND_SESSION_READINGS_URL);
+      if (!res.ok) return;
 
-  setRows((prev) => {
-    if (prev.length >= MAX_ROWS) return prev;
+      const data = await res.json();
 
-    return [
-      ...prev,
-      {
-        slNo: slCounter.current++,
-        time: data.time ?? new Date().toLocaleTimeString(),
-        ph: data.ph,
-        turbidity: data.turbidity,
-        tds: data.tds,
-        source: "live",
-      },
-    ];
-  });
-}, INTERVAL_MS);
+      if (Array.isArray(data.readings)) {
+        setRows(
+          data.readings.map((r: any, i: number) => ({
+            slNo: i + 1,
+            time: new Date(r.timestamp).toLocaleTimeString(),
+            ph: r.ph,
+            turbidity: r.turbidity,
+            tds: r.tds,
+            source: "live",
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Live session sync failed", err);
+    }
+  }, INTERVAL_MS);
 
   return () => clearInterval(id);
-}, [mode, rows.length]);
+}, [mode]);
+
 
       useEffect(() => {
   if (mode !== "live") return;
@@ -580,18 +583,70 @@ const avg = {
       color: "#ecfdf5",
     }}
   >
+    {/* TITLE */}
     <h2 style={{ color: "#22c55e", marginBottom: 12 }}>
       {filtrationInfo.title}
     </h2>
 
+    {/* BASIC INFO */}
     <p><b>Tank:</b> {filtrationInfo.tank}</p>
     <p><b>Status:</b> {filtrationInfo.status}</p>
 
     <hr style={{ borderColor: "#14532d", margin: "16px 0" }} />
 
+    {/* CONTAMINATION */}
+    <h3 style={{ color: "#86efac" }}>Contamination</h3>
+    <ul>
+      {filtrationInfo.contamination.map((c, i) => (
+        <li key={i}>{c}</li>
+      ))}
+    </ul>
+
+    {/* METHOD */}
+    <h3 style={{ color: "#86efac", marginTop: 12 }}>Treatment Method</h3>
+    <ul>
+      {filtrationInfo.method.map((m, i) => (
+        <li key={i}>{m}</li>
+      ))}
+    </ul>
+
+    {/* EXPLANATION */}
+    <h3 style={{ color: "#86efac", marginTop: 12 }}>Explanation</h3>
     <p style={{ lineHeight: 1.6 }}>
       {filtrationInfo.explanation}
     </p>
+
+    {/* POST USE */}
+    <h3 style={{ color: "#86efac", marginTop: 12 }}>Post-Treatment Uses</h3>
+    <ul>
+      {filtrationInfo.postUse.map((u, i) => (
+        <li key={i}>{u}</li>
+      ))}
+    </ul>
+
+    {/* RISKS */}
+    <h3 style={{ color: "#fca5a5", marginTop: 12 }}>Risks</h3>
+    <ul>
+      {filtrationInfo.risks.map((r, i) => (
+        <li key={i}>{r}</li>
+      ))}
+    </ul>
+
+    {/* MITIGATION */}
+    <h3 style={{ color: "#fde68a", marginTop: 12 }}>Mitigation Measures</h3>
+    <ul>
+      {filtrationInfo.mitigation.map((m, i) => (
+        <li key={i}>{m}</li>
+      ))}
+    </ul>
+
+    {/* VISUALS (optional, future-proof) */}
+    {filtrationInfo.visuals.length > 0 && (
+      <>
+        <h3 style={{ color: "#93c5fd", marginTop: 12 }}>Visuals</h3>
+        <p>Visual references available</p>
+      </>
+    )}
   </div>
 )}
 
