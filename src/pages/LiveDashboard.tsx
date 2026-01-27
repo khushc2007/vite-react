@@ -284,12 +284,23 @@ const secondaryButtonStyle = {
   fontWeight: 700,
   cursor: "pointer",
 };
-   const startLiveSession = async () => {
-  // reset UI state
+ 
+  const startLiveSession = async () => {
   setRows([]);
   setPrediction(null);
   setReadyToSave(false);
   slCounter.current = 1;
+
+  const res = await fetch(BACKEND_SESSION_START_URL, {
+    method: "POST",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to start backend session");
+  }
+
+  setMode("live");
+};
 
   
 
@@ -366,35 +377,25 @@ useEffect(() => {
      SIMULATION MODE
   ====================================================== */
  useEffect(() => {
-  if (mode !== "live") return;
+  if (mode !== "simulation") return;
   if (rows.length >= MAX_ROWS) return;
 
-  const id = setInterval(async () => {
-    try {
-      const res = await fetch(BACKEND_LATEST_URL);
-      if (!res.ok) throw new Error("Live backend unavailable");
-
-      const data = await res.json();
-
-      setRows((prev) => {
-        if (prev.length >= MAX_ROWS) return prev;
-
-        return [
-          ...prev,
-          {
-            slNo: slCounter.current++,
-            time: data.time ?? new Date().toLocaleTimeString(),
-            ph: 0,
-            turbidity: 0,
-            tds: 0,
-            source: "live",
-          },
-        ];
-      });
-    } catch (err) {
-      console.error("Live polling error:", err);
-      // DO NOT change mode here
-    }
+  const id = setInterval(() => {
+    setRows((prev) =>
+      prev.length >= MAX_ROWS
+        ? prev
+        : [
+            ...prev,
+            {
+              slNo: slCounter.current++,
+              time: new Date().toLocaleTimeString(),
+              ph: +(6.5 + Math.random()).toFixed(2),
+              turbidity: +(2 + Math.random()).toFixed(2),
+              tds: +(150 + Math.random() * 15).toFixed(1),
+              source: "simulation",
+            },
+          ]
+    );
   }, INTERVAL_MS);
 
   return () => clearInterval(id);
@@ -432,10 +433,7 @@ useEffect(() => {
 
     
 
-    const result = await res.json();
-    setPrediction(result);
-    setReadyToSave(true);
-  };
+    
 
   /* ======================================================
      SAVE ITERATION
