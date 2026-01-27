@@ -2,53 +2,33 @@ import Breadcrumbs from "../../components/Breadcrumbs";
 import PdfExportButton from "../../components/PdfExportButton";
 
 /* ===============================
-   GLOBAL SECTION STYLES
+   STYLES (SINGLE SYSTEM)
 ================================ */
-const pageWidth: React.CSSProperties = {
+const pageStyle: React.CSSProperties = {
   padding: 32,
   maxWidth: 1100,
 };
 
 const sectionBase: React.CSSProperties = {
-  marginBottom: 40,
-};
-
-const sectionSoft: React.CSSProperties = {
-  marginBottom: 40,
+  marginBottom: 36,
   padding: "18px 22px",
-  background: "#020617",
-  borderRadius: 14,
-};
-
-const sectionAccent: React.CSSProperties = {
-  marginBottom: 40,
-  paddingLeft: 20,
-  borderLeft: "5px solid #22c55e",
+  borderRadius: 12,
 };
 
 const sectionAlt: React.CSSProperties = {
-  marginBottom: 40,
-  padding: "18px 22px",
+  ...sectionBase,
   background: "#020617",
-  borderRadius: 14,
-  border: "1px solid #1e293b",
 };
 
 const titleStyle: React.CSSProperties = {
-  fontSize: 21,
+  fontSize: 20,
   fontWeight: 800,
-  marginBottom: 12,
+  marginBottom: 10,
 };
 
 const textStyle: React.CSSProperties = {
-  lineHeight: 1.75,
+  lineHeight: 1.7,
   opacity: 0.9,
-};
-
-const divider: React.CSSProperties = {
-  height: 1,
-  background: "#1e293b",
-  margin: "48px 0",
 };
 
 /* ===============================
@@ -58,19 +38,17 @@ export default function Aquaculture() {
   const pdfContent = `
 Aquaculture Water Quality Monitoring System
 
-This document outlines how session-based monitoring, iteration history,
-decision logic, and automated routing improve aquaculture sustainability.
+Session-based monitoring, filtration classification,
+and automated tank routing for aquaculture environments.
 `;
 
   return (
-    <div style={pageWidth}>
-      {/* Breadcrumbs */}
+    <div style={pageStyle}>
       <Breadcrumbs items={["Home", "Applications", "Aquaculture"]} />
 
       <h1 style={{ marginBottom: 8 }}>🐟 Aquaculture Applications</h1>
       <p style={{ opacity: 0.75, marginBottom: 28 }}>
-        Application of intelligent, session-driven water-quality monitoring
-        systems in aquaculture environments.
+        Intelligent, session-driven water-quality monitoring for aquaculture systems.
       </p>
 
       <PdfExportButton
@@ -82,101 +60,86 @@ decision logic, and automated routing improve aquaculture sustainability.
       <section style={sectionBase}>
         <div style={titleStyle}>1. Problem Context</div>
         <p style={textStyle}>
-          Aquaculture environments are highly sensitive to water chemistry.
-          Minor deviations in pH, turbidity, or dissolved solids can lead to
-          physiological stress, disease outbreaks, and reduced growth rates.
-          Manual testing is reactive and insufficient for continuous control.
+          Aquaculture systems are highly sensitive to water chemistry. Small
+          deviations in pH, turbidity, or dissolved solids can lead to stress,
+          disease outbreaks, and reduced yield.
         </p>
       </section>
 
       {/* 2 */}
-      <section style={sectionSoft}>
-        <div style={titleStyle}>2. Water Quality Parameters Monitored</div>
+      <section style={sectionAlt}>
+        <div style={titleStyle}>2. Key Water Quality Parameters</div>
         <p style={textStyle}>
-          The system continuously monitors pH, turbidity, and Total Dissolved
-          Solids (TDS). These parameters collectively describe chemical balance,
-          particulate load, and ionic concentration—core indicators of aquatic
-          habitat stability.
+          The system monitors pH, turbidity, and Total Dissolved Solids (TDS) to
+          capture chemical balance, particulate load, and ionic concentration.
         </p>
       </section>
 
       {/* 3 */}
-      <section style={sectionAccent}>
-        <div style={titleStyle}>3. Live Monitoring & Session Control</div>
+      <section style={sectionBase}>
+        <div style={titleStyle}>3. Live Session-Based Monitoring</div>
         <p style={textStyle}>
-          Data collection occurs only within explicitly triggered live sessions.
-          This session-based architecture ensures that only valid, intentional
-          measurements influence decisions, eliminating background noise and
-          false data interpretation.
+          Data is collected only during explicitly started sessions. This prevents
+          stale or accidental readings from influencing system decisions.
         </p>
       </section>
 
-      <div style={divider} />
-
       {/* 4 */}
       <section style={sectionAlt}>
-        <div style={titleStyle}>4. Iteration History & Trend Analysis</div>
+        <div style={titleStyle}>4. Iteration History & Analysis</div>
         <p style={textStyle}>
-          Each completed session is saved as an iteration containing timestamped
-          readings, computed averages, and final decisions. Iteration history
-          allows farmers to analyze seasonal behavior, detect recurring issues,
-          and evaluate long-term water stability.
+          Each completed session is stored as an iteration containing raw values,
+          averages, timestamps, and decisions. This enables trend analysis and
+          seasonal comparison.
         </p>
       </section>
 
       {/* 5 */}
       <section style={sectionBase}>
-        <div style={titleStyle}>5. Decision Logic & Filtration Classification</div>
+        <div style={titleStyle}>5. Decision Logic & Classification</div>
         <p style={textStyle}>
-          After a session completes, the system evaluates average sensor values
-          and classifies water into filtration brackets (F1–F5). This ensures
-          consistent, explainable, and repeatable decisions across all cycles.
+          Session averages are evaluated against predefined thresholds and
+          classified into filtration brackets (F1–F5), ensuring consistent,
+          explainable decisions.
         </p>
       </section>
 
       {/* 6 */}
-      <section style={sectionSoft}>
-        <div style={titleStyle}>6. Tank Segregation & Pump Routing</div>
+      <section style={sectionAlt}>
+        <div style={titleStyle}>6. Tank Routing & Pump Control</div>
         <p style={textStyle}>
-          Classification results directly control pump routing. Reusable water
-          is directed into appropriate tanks, while contaminated water is
-          isolated or routed for treatment, preventing cross-contamination
-          within aquaculture systems.
+          Based on classification results, pumps route reusable water to
+          appropriate tanks while isolating contaminated water to prevent
+          cross-contamination.
         </p>
       </section>
 
-      <div style={divider} />
-
       {/* 7 */}
-      <section style={sectionAccent}>
+      <section style={sectionBase}>
         <div style={titleStyle}>7. Operational Benefits for Farmers</div>
         <ul style={textStyle}>
           <li>Reduced fish mortality and disease risk</li>
-          <li>Lower water replacement and treatment costs</li>
+          <li>Lower water replacement costs</li>
           <li>Improved yield predictability</li>
-          <li>Reduced dependency on manual testing</li>
+          <li>Minimal manual intervention</li>
         </ul>
       </section>
 
       {/* 8 */}
       <section style={sectionAlt}>
-        <div style={titleStyle}>8. Sustainability & Regulatory Alignment</div>
+        <div style={titleStyle}>8. Sustainability & Compliance</div>
         <p style={textStyle}>
-          Controlled reuse of water minimizes freshwater extraction and reduces
-          wastewater discharge. Stored iterations provide auditable records,
-          supporting environmental compliance and responsible aquaculture
-          practices.
+          Controlled reuse minimizes freshwater extraction and wastewater
+          discharge. Stored iterations support audits and regulatory compliance.
         </p>
       </section>
 
       {/* 9 */}
       <section style={sectionBase}>
-        <div style={titleStyle}>9. Scalability & Cross-Domain Adaptability</div>
+        <div style={titleStyle}>9. Scalability & Cross-Domain Use</div>
         <p style={textStyle}>
-          The same monitoring, decision, and iteration framework can be adapted
-          to agriculture irrigation systems and industrial process water
-          management with minimal modification, making the system domain-agnostic
-          and future-ready.
+          The same architecture can be adapted for agriculture irrigation and
+          industrial process water systems with minimal changes.
         </p>
       </section>
     </div>
