@@ -1,98 +1,139 @@
 import Breadcrumbs from "../../components/Breadcrumbs";
-import ExpandableSection from "../../components/ExpandableSection";
 import PdfExportButton from "../../components/PdfExportButton";
+
+const sectionStyle: React.CSSProperties = {
+  marginBottom: 32,
+};
+
+const sectionTitle: React.CSSProperties = {
+  fontSize: 20,
+  fontWeight: 800,
+  marginBottom: 8,
+};
+
+const sectionText: React.CSSProperties = {
+  lineHeight: 1.7,
+  opacity: 0.9,
+};
 
 export default function Aquaculture() {
   const pdfContent = `
-Aquaculture Water Quality Monitoring
+Aquaculture Water Quality Monitoring System
 
-Aquaculture systems require precise monitoring of water quality parameters
-such as pH, turbidity, and total dissolved solids (TDS) to ensure fish health,
-prevent disease outbreaks, and maintain sustainable production.
-
-Poor water quality leads to stress, reduced growth rates, and increased mortality.
+This document describes the application of a session-based, sensor-driven
+water quality monitoring and decision system in aquaculture environments.
 `;
 
   return (
-    <div>
-      {/* Breadcrumb navigation */}
-      <Breadcrumbs
-        items={["Home", "Applications", "Aquaculture"]}
-      />
+    <div style={{ padding: 32, maxWidth: 900 }}>
+      {/* Breadcrumbs */}
+      <Breadcrumbs items={["Home", "Applications", "Aquaculture"]} />
 
-      <h1 style={{ marginBottom: "8px" }}>
-        🐟 Aquaculture Applications
-      </h1>
-      <p style={{ opacity: 0.75, marginBottom: "18px" }}>
-        Application of intelligent water-quality monitoring in aquaculture systems.
+      <h1 style={{ marginBottom: 6 }}>🐟 Aquaculture Application</h1>
+      <p style={{ opacity: 0.75, marginBottom: 24 }}>
+        Intelligent monitoring, decision-making, and reuse of water in aquaculture systems.
       </p>
 
-      {/* PDF Export */}
       <PdfExportButton
         title="Aquaculture_Water_Quality"
         content={pdfContent}
       />
 
-      {/* Expandable Research Sections */}
-      <ExpandableSection
-        title="Importance of Water Quality in Aquaculture"
-        icon="💧"
-      >
-        <p>
-          Aquatic organisms are extremely sensitive to changes in water chemistry.
-          Parameters such as pH affect metabolic activity, while turbidity can
-          reduce oxygen penetration and interfere with feeding behavior.
+      {/* 1. Problem Context */}
+      <section style={sectionStyle}>
+        <div style={sectionTitle}>1. Problem Context</div>
+        <p style={sectionText}>
+          Aquaculture systems are highly sensitive to water quality variations.
+          Even minor deviations in pH, turbidity, or dissolved solids can lead
+          to stress, disease outbreaks, reduced growth rates, and economic loss.
+          Manual monitoring is inconsistent and impractical at scale.
         </p>
-        <p>
-          Continuous monitoring enables early detection of unfavorable conditions,
-          reducing economic losses and improving fish welfare.
-        </p>
-      </ExpandableSection>
+      </section>
 
-      <ExpandableSection
-        title="Role of Sensors and IoT Systems"
-        icon="📡"
-      >
-        <p>
-          IoT-based sensor networks provide real-time measurement of pH,
-          turbidity, and TDS. These systems eliminate manual sampling errors
-          and allow remote monitoring of large aquaculture facilities.
+      {/* 2. Parameters Monitored */}
+      <section style={sectionStyle}>
+        <div style={sectionTitle}>2. Parameters Monitored</div>
+        <p style={sectionText}>
+          The system continuously monitors pH, turbidity, and total dissolved
+          solids (TDS). These parameters directly influence fish metabolism,
+          oxygen availability, and long-term water toxicity.
         </p>
-        <p>
-          Data collected can be visualized, stored, and analyzed for trends
-          and anomalies.
-        </p>
-      </ExpandableSection>
+        {/* You can add images here later */}
+      </section>
 
-      <ExpandableSection
-        title="Filtration, Reuse, and Tank Segregation"
-        icon="🧪"
-      >
-        <p>
-          Based on measured parameters, water is classified into filtration
-          brackets (F1–F5). Reusable water is routed to Tank A, while non-reusable
-          water undergoes further treatment or disposal.
+      {/* 3. Live Monitoring & Sessions */}
+      <section style={sectionStyle}>
+        <div style={sectionTitle}>3. Live Monitoring & Session-Based Collection</div>
+        <p style={sectionText}>
+          Data is collected only during explicitly triggered live sessions.
+          This prevents stale or random readings from influencing decisions.
+          Each session produces a consistent batch of sensor readings used
+          for analysis and classification.
         </p>
-        <p>
-          This decision-making process minimizes water wastage and supports
-          sustainable aquaculture practices.
-        </p>
-      </ExpandableSection>
+      </section>
 
-      <ExpandableSection
-        title="Automation and Sustainability Benefits"
-        icon="⚙️"
-      >
-        <p>
-          Automated decision systems reduce dependency on manual labor and
-          ensure consistent water quality. Integration with control units
-          allows automatic filtration, alerts, and corrective actions.
+      {/* 4. Iteration History */}
+      <section style={sectionStyle}>
+        <div style={sectionTitle}>4. Iteration History & Trend Analysis</div>
+        <p style={sectionText}>
+          Every completed session is stored as an iteration with timestamps
+          and averaged values. Historical iterations enable trend detection,
+          such as gradual pH drift, recurring turbidity spikes after feeding,
+          and long-term salinity accumulation.
         </p>
-        <p>
-          Such systems promote sustainability by optimizing water reuse and
-          reducing environmental impact.
+      </section>
+
+      {/* 5. Decision Logic */}
+      <section style={sectionStyle}>
+        <div style={sectionTitle}>5. Decision Logic & Water Routing</div>
+        <p style={sectionText}>
+          Based on computed averages, water is classified into filtration
+          brackets. Reusable water is routed to Tank A, while non-reusable
+          water is directed to Tank B for treatment or disposal through
+          automated pump control.
         </p>
-      </ExpandableSection>
+      </section>
+
+      {/* 6. Operational Benefits */}
+      <section style={sectionStyle}>
+        <div style={sectionTitle}>6. Operational Benefits</div>
+        <ul style={sectionText}>
+          <li>Reduced fish mortality</li>
+          <li>Lower water replacement costs</li>
+          <li>Consistent and objective decision-making</li>
+          <li>Reduced manual intervention</li>
+        </ul>
+      </section>
+
+      {/* 7. Example Scenario */}
+      <section style={sectionStyle}>
+        <div style={sectionTitle}>7. Example Scenario</div>
+        <p style={sectionText}>
+          After feeding cycles, turbidity spikes are observed across multiple
+          iterations. Using historical data, farmers adjust feed timing and
+          quantity, stabilizing water quality and improving fish health.
+        </p>
+      </section>
+
+      {/* 8. Scalability */}
+      <section style={sectionStyle}>
+        <div style={sectionTitle}>8. Scalability & Deployment Readiness</div>
+        <p style={sectionText}>
+          The system supports single-pond and multi-pond deployments. Its
+          ESP-based architecture enables low-cost scaling and integration
+          with additional sensors such as temperature or dissolved oxygen.
+        </p>
+      </section>
+
+      {/* 9. Compliance */}
+      <section style={sectionStyle}>
+        <div style={sectionTitle}>9. Compliance & Reporting</div>
+        <p style={sectionText}>
+          Stored iterations provide traceable water quality records that
+          support audits, compliance reporting, and data-driven farm
+          management decisions.
+        </p>
+      </section>
     </div>
   );
 }
