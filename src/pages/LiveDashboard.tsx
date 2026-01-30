@@ -248,7 +248,33 @@ const FILTRATION_LIBRARY: Record<
 export default function LiveDashboard() {
    const [pumpBusy, setPumpBusy] = useState(false);
 const [lastPumpCommand, setLastPumpCommand] = useState<string | null>(null);
+const sendPumpCommand = async (
+  command: "START_PUMP_A" | "START_PUMP_B" | "START_PUMP_C" | "STOP_ALL"
+) => {
+  try {
+    setPumpBusy(true);
 
+    const res = await fetch(BACKEND_PUMP_COMMAND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ command }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Pump command failed");
+      return;
+    }
+
+    setLastPumpCommand(command);
+  } catch (err) {
+    console.error("Pump command error", err);
+    alert("Backend unavailable");
+  } finally {
+    setPumpBusy(false);
+  }
+};
   const [rows, setRows] = useState<Row[]>([]);
   const [activeMetric, setActiveMetric] =
     useState<"ph" | "tds" | "turbidity" | null>(null);
@@ -426,33 +452,6 @@ useEffect(() => {
     const res = await fetch(BACKEND_ANALYZE_URL, {
       method: "POST",
     });
-const sendPumpCommand = async (command: 
-  "START_PUMP_A" | "START_PUMP_B" | "START_PUMP_C" | "STOP_ALL"
-) => {
-  try {
-    setPumpBusy(true);
-
-    const res = await fetch(BACKEND_PUMP_COMMAND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ command }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error || "Pump command failed");
-      return;
-    }
-
-    setLastPumpCommand(command);
-  } catch (err) {
-    console.error("Pump command error", err);
-    alert("Backend unavailable");
-  } finally {
-    setPumpBusy(false);
-  }
-};
 
     const result = await res.json();
 
@@ -701,9 +700,11 @@ const avg = {
     </h2>
 
     <p>
-      <b>Suggested Tank:</b>{" "}
-      {prediction.reusable ? "Tank A (Reusable)" : "Tank B (Discard)"}
-    </p>
+  <b>Suggested Tank:</b>{" "}
+  {prediction.suggestedTank === "A"
+    ? "Tank A (Reusable)"
+    : "Tank B (Discard)"}
+</p>
 
     <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
       <button
