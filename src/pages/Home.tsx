@@ -94,11 +94,7 @@ Made IN Bharat
           description="Monitor real-time water parameters, run simulations, trigger predictions, and classify filtration brackets instantly."
           to="/live"
         />
-        <Card
-  title="Tank View"
-  description="Visualize live water levels in Tank A and Tank B using ultrasonic sensor data and monitor storage utilization."
-  to="/tank"
-/>
+       
 
         <Card
           title="History"
