@@ -360,16 +360,20 @@ useEffect(() => {
       const data = await res.json();
 
       if (Array.isArray(data.readings)) {
-        setRows(
-          data.readings.map((r: any, i: number) => ({
-            slNo: i + 1,
-            time: new Date(r.timestamp).toLocaleTimeString(),
-            ph: r.ph,
-            turbidity: r.turbidity,
-            tds: r.tds,
-            source: "live",
-          }))
-        );
+      setRows(prev => {
+  const incoming = data.readings.slice(prev.length);
+
+  const mapped = incoming.map((r: any, i: number) => ({
+    slNo: prev.length + i + 1,
+    time: new Date(r.timestamp).toLocaleTimeString(),
+    ph: r.ph,
+    turbidity: r.turbidity,
+    tds: r.tds,
+    source: "live",
+  }));
+
+  return [...prev, ...mapped].slice(0, MAX_ROWS);
+});
       }
     } catch (err) {
       console.error("Live session sync failed", err);
