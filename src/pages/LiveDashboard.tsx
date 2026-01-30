@@ -48,6 +48,11 @@ type Row = {
 };
 
 type Mode = "idle" | "simulation" | "live";
+type Prediction = {
+  bracket: "F1" | "F2" | "F3" | "F4" | "F5";
+  reusable: boolean;
+  suggestedTank: "A" | "B";
+};
 
 type Iteration = {
   id: string;
@@ -60,11 +65,7 @@ type Iteration = {
     turbidity: number;
     tds: number;
   };
-  prediction: {
-    bracket: "F1" | "F2" | "F3" | "F4" | "F5";
-    reusable: boolean;
-    suggestedTank: "A" | "B";
-  };
+ prediction: Prediction | null;
 };
 /* ======================================================
    FILTRATION KNOWLEDGE LIBRARY
@@ -276,12 +277,7 @@ const sendPumpCommand = async (
   const [rows, setRows] = useState<Row[]>([]);
   const [activeMetric, setActiveMetric] =
     useState<"ph" | "tds" | "turbidity" | null>(null);
-  type Prediction = {
-  bracket: "F1" | "F2" | "F3" | "F4" | "F5";
-  reusable: boolean;
-  suggestedTank: "A" | "B";
-};
-
+ 
 const [prediction, setPrediction] = useState<Prediction | null>(null);
 
   const [mode, setMode] = useState<Mode>("idle");
@@ -472,7 +468,13 @@ useEffect(() => {
   }
 };
 
-    
+    const avg = {
+    ph: rows.length ? rows.reduce((s, r) => s + r.ph, 0) / rows.length : 0,
+    turbidity: rows.length
+      ? rows.reduce((s, r) => s + r.turbidity, 0) / rows.length
+      : 0,
+    tds: rows.length ? rows.reduce((s, r) => s + r.tds, 0) / rows.length : 0,
+  };
 
     
 
@@ -507,13 +509,6 @@ useEffect(() => {
   prediction?.bracket
     ? FILTRATION_LIBRARY[prediction.bracket]
     : null;
-const avg = {
-    ph: rows.length ? rows.reduce((s, r) => s + r.ph, 0) / rows.length : 0,
-    turbidity: rows.length
-      ? rows.reduce((s, r) => s + r.turbidity, 0) / rows.length
-      : 0,
-    tds: rows.length ? rows.reduce((s, r) => s + r.tds, 0) / rows.length : 0,
-  };
   return (
     <div style={{ padding: 24 }}>
       {/* TOP BAR */}
