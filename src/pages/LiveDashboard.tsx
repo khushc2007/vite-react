@@ -291,10 +291,11 @@ const startSimulation = () => {
   setReadyToSave(false);
   slCounter.current = 1;
 };
-   const [sessionStatus, setSessionStatus] = useState<{
+  const [sessionStatus, setSessionStatus] = useState<{
   active: boolean;
   completed: boolean;
   collected: number;
+  phase: "IDLE" | "COLLECTING" | "ANALYZED" | "TRANSFERRING_MAIN" | "POST_FILTRATION" | "COMPLETE";
 } | null>(null);
 
 
@@ -401,8 +402,7 @@ useEffect(() => {
 
   return () => clearInterval(id);
 }, [mode]);
-      useEffect(() => {
-  // whenever we LEAVE live mode, reset backend session
+     useEffect(() => {
   if (mode !== "live") {
     fetch(BACKEND_SESSION_RESET_URL, { method: "POST" }).catch(() => {});
     setSessionStatus(null);
@@ -585,30 +585,35 @@ useEffect(() => {
     Collecting data ({sessionStatus.collected}/{MAX_ROWS})
   </p>
 )}
+       {mode === "live" && sessionStatus && (
+  <p style={{ marginTop: 6, color: "#94a3b8" }}>
+    Backend Phase: <b>{sessionStatus.phase}</b>
+  </p>
+)}
 
 
-      {mode === "live" &&
-  sessionStatus?.collected === MAX_ROWS && (
 
-        <button
-  onClick={runPrediction}
-  style={{
-    marginTop: 24,
-    width: "100%",
-    padding: "16px 24px",
-    fontSize: 18,
-    borderRadius: 14,
-    background: "linear-gradient(135deg,#22c55e,#16a34a)",
-    color: "#022c22",
-    border: "none",
-    fontWeight: 800,
-    cursor: "pointer",
-  }}
->
-  Run Prediction Model
-</button>
-       )}
-
+     {mode === "live" &&
+ sessionStatus?.collected === MAX_ROWS &&
+ sessionStatus?.phase === "COLLECTING" && (
+  <button
+    onClick={runPrediction}
+    style={{
+      marginTop: 24,
+      width: "100%",
+      padding: "16px 24px",
+      fontSize: 18,
+      borderRadius: 14,
+      background: "linear-gradient(135deg,#22c55e,#16a34a)",
+      color: "#022c22",
+      border: "none",
+      fontWeight: 800,
+      cursor: "pointer",
+    }}
+  >
+    Run Prediction Model
+  </button>
+)}
      {filtrationInfo && (
   <div
     style={{
