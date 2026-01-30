@@ -32,7 +32,7 @@ const BACKEND_PUMP_COMMAND_URL =
    CONFIG
 ====================================================== */
 const INTERVAL_MS = 4000;
-const MAX_ROWS = 10;
+const MAX_ROWS = 5;
 
 
 /* ======================================================
