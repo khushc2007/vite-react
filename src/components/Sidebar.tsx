@@ -80,16 +80,7 @@ export default function Sidebar() {
             >
               Live Dashboard
             </NavLink>
-            <NavLink
-  to="/tank"
-  style={({ isActive }) =>
-    isActive
-      ? { ...linkStyle, ...activeLinkStyle }
-      : linkStyle
-  }
->
-  Tank View
-</NavLink>
+           
 
             <NavLink
               to="/history"
