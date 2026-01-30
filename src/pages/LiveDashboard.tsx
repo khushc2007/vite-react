@@ -7,22 +7,22 @@ import ChartModal from "../components/ChartModal";
    BACKEND ENDPOINTS
 ====================================================== */
 const BACKEND_ANALYZE_URL =
-  "https://water-quality-backend-finalest.onrender.com/analyze-water";
+  "https://water-quality-backend-12-pctw.onrender.com/analyze-water";
 
 const BACKEND_SESSION_READINGS_URL =
-  "https://water-quality-backend-finalest.onrender.com/session/readings";
+  "https://water-quality-backend-12-pctw.onrender.com/session/readings";
 
 const BACKEND_SESSION_START_URL =
-  "https://water-quality-backend-finalest.onrender.com/session/start";
+  "https://water-quality-backend-12-pctw.onrender.com/session/start";
 
 const BACKEND_SESSION_STATUS_URL =
-  "https://water-quality-backend-finalest.onrender.com/session/status";
+  "https://water-quality-backend-12-pctw.onrender.com/session/status";
 
 const BACKEND_SESSION_RESET_URL =
-  "https://water-quality-backend-finalest.onrender.com/session/reset";
+  "https://water-quality-backend-12-pctw.onrender.com/session/reset";
 
 const BACKEND_PUMP_COMMAND_URL =
-  "https://water-quality-backend-finalest.onrender.com/pump/command";
+  "https://water-quality-backend-12-pctw.onrender.com/pump/command";
 
 
 
