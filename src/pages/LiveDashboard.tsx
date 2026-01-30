@@ -692,67 +692,8 @@ useEffect(() => {
   </div>
 )}
        
-{prediction && (
-  <div
-    style={{
-      marginTop: 32,
-      padding: 24,
-      borderRadius: 16,
-      background: "#020617",
-      border: "1px solid #22c55e",
-    }}
-  >
-    <h2 style={{ color: "#22c55e", marginBottom: 12 }}>
-      Water Routing Control
-    </h2>
 
-    <p>
-  <b>Suggested Tank:</b>{" "}
-  {prediction.suggestedTank === "A"
-    ? "Tank A (Reusable)"
-    : "Tank B (Discard)"}
-</p>
-
-    <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
-      <button
-        disabled={pumpBusy}
-        style={primaryButtonStyle}
-        onClick={() =>
-          sendPumpCommand(
-            prediction.reusable ? "START_PUMP_A" : "START_PUMP_B"
-          )
-        }
-      >
-        Start Transfer
-      </button>
-
-      <button
-        disabled={pumpBusy}
-        style={secondaryButtonStyle}
-        onClick={() => sendPumpCommand("STOP_ALL")}
-      >
-        Stop Pump
-         </button>
-         {prediction?.reusable && (
-  <button
-    style={{ ...primaryButtonStyle, marginTop: 12 }}
-    disabled={pumpBusy}
-    onClick={() => sendPumpCommand("START_PUMP_C")}
-  >
-    Transfer Reusable Water to Final Tank
-  </button>
-)}
-      
-       
-    </div>
-
-    {lastPumpCommand && (
-      <p style={{ marginTop: 12, color: "#86efac" }}>
-        Active Command: {lastPumpCommand}
-      </p>
-    )}
-  </div>
-)}
+  
       {readyToSave && (
         
   <div
