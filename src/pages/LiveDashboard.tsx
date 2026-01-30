@@ -7,19 +7,25 @@ import ChartModal from "../components/ChartModal";
    BACKEND ENDPOINTS
 ====================================================== */
 const BACKEND_ANALYZE_URL =
-  "https://water-quality-backend-10-kijx.onrender.com/analyze-water";
+  "https://water-quality-backend-finalest.onrender.com/analyze-water";
 
 const BACKEND_SESSION_READINGS_URL =
-  "https://water-quality-backend-10-kijx.onrender.com/session/readings";
+  "https://water-quality-backend-finalest.onrender.com/session/readings";
 
 const BACKEND_SESSION_START_URL =
-  "https://water-quality-backend-10-kijx.onrender.com/session/start";
+  "https://water-quality-backend-finalest.onrender.com/session/start";
 
 const BACKEND_SESSION_STATUS_URL =
-  "https://water-quality-backend-10-kijx.onrender.com/session/status";
+  "https://water-quality-backend-finalest.onrender.com/session/status";
 
 const BACKEND_SESSION_RESET_URL =
-  "https://water-quality-backend-10-kijx.onrender.com/session/reset";
+  "https://water-quality-backend-finalest.onrender.com/session/reset";
+
+const BACKEND_PUMP_COMMAND_URL =
+  "https://water-quality-backend-finalest.onrender.com/pump/command";
+
+const BACKEND_PREDICTION_LATEST_URL =
+  "https://water-quality-backend-finalest.onrender.com/prediction/latest";
 
 
 
@@ -240,6 +246,9 @@ const FILTRATION_LIBRARY: Record<
    COMPONENT
 ====================================================== */
 export default function LiveDashboard() {
+   const [pumpBusy, setPumpBusy] = useState(false);
+const [lastPumpCommand, setLastPumpCommand] = useState<string | null>(null);
+
   const [rows, setRows] = useState<Row[]>([]);
   const [activeMetric, setActiveMetric] =
     useState<"ph" | "tds" | "turbidity" | null>(null);
@@ -417,6 +426,33 @@ useEffect(() => {
     const res = await fetch(BACKEND_ANALYZE_URL, {
       method: "POST",
     });
+const sendPumpCommand = async (command: 
+  "START_PUMP_A" | "START_PUMP_B" | "START_PUMP_C" | "STOP_ALL"
+) => {
+  try {
+    setPumpBusy(true);
+
+    const res = await fetch(BACKEND_PUMP_COMMAND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ command }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Pump command failed");
+      return;
+    }
+
+    setLastPumpCommand(command);
+  } catch (err) {
+    console.error("Pump command error", err);
+    alert("Backend unavailable");
+  } finally {
+    setPumpBusy(false);
+  }
+};
 
     const result = await res.json();
 
@@ -465,9 +501,9 @@ useEffect(() => {
     setReadyToSave(false);
   };
 
-  const filtrationInfo =
-  prediction?.filtrationBracket
-    ? FILTRATION_LIBRARY[prediction.filtrationBracket]
+ const filtrationInfo =
+  prediction?.bracket
+    ? FILTRATION_LIBRARY[prediction.bracket]
     : null;
 const avg = {
     ph: rows.length ? rows.reduce((s, r) => s + r.ph, 0) / rows.length : 0,
@@ -649,7 +685,66 @@ const avg = {
     )}
   </div>
 )}
+       
+{prediction && (
+  <div
+    style={{
+      marginTop: 32,
+      padding: 24,
+      borderRadius: 16,
+      background: "#020617",
+      border: "1px solid #22c55e",
+    }}
+  >
+    <h2 style={{ color: "#22c55e", marginBottom: 12 }}>
+      Water Routing Control
+    </h2>
 
+    <p>
+      <b>Suggested Tank:</b>{" "}
+      {prediction.reusable ? "Tank A (Reusable)" : "Tank B (Discard)"}
+    </p>
+
+    <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
+      <button
+        disabled={pumpBusy}
+        style={primaryButtonStyle}
+        onClick={() =>
+          sendPumpCommand(
+            prediction.reusable ? "START_PUMP_A" : "START_PUMP_B"
+          )
+        }
+      >
+        Start Transfer
+      </button>
+
+      <button
+        disabled={pumpBusy}
+        style={secondaryButtonStyle}
+        onClick={() => sendPumpCommand("STOP_ALL")}
+      >
+        Stop Pump
+         </button>
+         {prediction?.reusable && (
+  <button
+    style={{ ...primaryButtonStyle, marginTop: 12 }}
+    disabled={pumpBusy}
+    onClick={() => sendPumpCommand("START_PUMP_C")}
+  >
+    Transfer Reusable Water to Final Tank
+  </button>
+)}
+      
+       
+    </div>
+
+    {lastPumpCommand && (
+      <p style={{ marginTop: 12, color: "#86efac" }}>
+        Active Command: {lastPumpCommand}
+      </p>
+    )}
+  </div>
+)}
       {readyToSave && (
         
   <div
