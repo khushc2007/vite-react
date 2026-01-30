@@ -24,8 +24,7 @@ const BACKEND_SESSION_RESET_URL =
 const BACKEND_PUMP_COMMAND_URL =
   "https://water-quality-backend-finalest.onrender.com/pump/command";
 
-const BACKEND_PREDICTION_LATEST_URL =
-  "https://water-quality-backend-finalest.onrender.com/prediction/latest";
+
 
 
 
@@ -62,12 +61,10 @@ type Iteration = {
     tds: number;
   };
   prediction: {
-    reusable: string;
-    tank: string;
-    filtrationBracket: string;
-  };
+  bracket: "F1" | "F2" | "F3" | "F4" | "F5";
+  reusable: boolean;
+  suggestedTank: "A" | "B";
 };
-
 /* ======================================================
    FILTRATION KNOWLEDGE LIBRARY
 ====================================================== */
@@ -278,7 +275,14 @@ const sendPumpCommand = async (
   const [rows, setRows] = useState<Row[]>([]);
   const [activeMetric, setActiveMetric] =
     useState<"ph" | "tds" | "turbidity" | null>(null);
-  const [prediction, setPrediction] = useState<any>(null);
+  type Prediction = {
+  bracket: "F1" | "F2" | "F3" | "F4" | "F5";
+  reusable: boolean;
+  suggestedTank: "A" | "B";
+};
+
+const [prediction, setPrediction] = useState<Prediction | null>(null);
+
   const [mode, setMode] = useState<Mode>("idle");
   const [iterationName, setIterationName] = useState("");
   const [readyToSave, setReadyToSave] = useState(false);
@@ -298,8 +302,6 @@ const startSimulation = () => {
 
 
   const slCounter = useRef(1);
-  const clickCounter = useRef(0);
-const lastModeRef = useRef<Mode>("idle");
    const primaryButtonStyle = {
   padding: "12px 20px",
   borderRadius: 12,
