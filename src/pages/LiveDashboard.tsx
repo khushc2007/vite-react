@@ -61,9 +61,10 @@ type Iteration = {
     tds: number;
   };
   prediction: {
-  bracket: "F1" | "F2" | "F3" | "F4" | "F5";
-  reusable: boolean;
-  suggestedTank: "A" | "B";
+    bracket: "F1" | "F2" | "F3" | "F4" | "F5";
+    reusable: boolean;
+    suggestedTank: "A" | "B";
+  };
 };
 /* ======================================================
    FILTRATION KNOWLEDGE LIBRARY
