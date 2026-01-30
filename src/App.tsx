@@ -40,7 +40,6 @@ export default function App() {
 
             {/* CORE */}
             <Route path="/live" element={<LiveDashboard />} />
-            <Route path="/tank" element={<TankView />} />
             <Route path="/history" element={<History />} />
             <Route path="/settings" element={<Settings />} />
 
