@@ -67,7 +67,7 @@ export default function Home() {
           color: "#ecfdf5",
         }}
       >
-Made IN Bharat
+Build In Bharat
       </h1>
 
       <p
