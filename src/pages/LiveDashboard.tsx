@@ -642,9 +642,7 @@ useEffect(() => {
 
 
 
-     {mode === "live" &&
- sessionStatus?.collected === MAX_ROWS &&
- sessionStatus?.phase === "COLLECTING" && (
+     {rows.length === MAX_ROWS && (
   <button
     onClick={runPrediction}
     style={{
@@ -1105,4 +1103,4 @@ useEffect(() => {
       )}
     </div>
   );
-}
+
