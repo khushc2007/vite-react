@@ -241,6 +241,27 @@ const FILTRATION_LIBRARY: Record<
   },
 };
 
+function simulatePrediction(avg: { ph: number; turbidity: number; tds: number }): Prediction {
+  const { ph, turbidity, tds } = avg;
+
+  if (turbidity < 2 && tds < 200 && ph >= 6.5 && ph <= 8) {
+    return { bracket: "F1", reusable: true, suggestedTank: "A" };
+  }
+
+  if (turbidity < 4 && tds < 300) {
+    return { bracket: "F2", reusable: true, suggestedTank: "A" };
+  }
+
+  if (turbidity < 8 && tds < 500) {
+    return { bracket: "F3", reusable: true, suggestedTank: "A" };
+  }
+
+  if (tds < 800) {
+    return { bracket: "F4", reusable: false, suggestedTank: "B" };
+  }
+
+  return { bracket: "F5", reusable: false, suggestedTank: "B" };
+}
 /* ======================================================
    COMPONENT
 ====================================================== */
@@ -284,12 +305,18 @@ const [prediction, setPrediction] = useState<Prediction | null>(null);
   const [iterationName, setIterationName] = useState("");
   const [readyToSave, setReadyToSave] = useState(false);
 const startSimulation = () => {
-  // reset UI state
   setMode("simulation");
   setRows([]);
   setPrediction(null);
   setReadyToSave(false);
   slCounter.current = 1;
+
+  setSessionStatus({
+    active: true,
+    completed: false,
+    collected: 0,
+    phase: "COLLECTING",
+  });
 };
   const [sessionStatus, setSessionStatus] = useState<{
   active: boolean;
@@ -417,68 +444,87 @@ useEffect(() => {
   /* ======================================================
      SIMULATION MODE
   ====================================================== */
- useEffect(() => {
+useEffect(() => {
   if (mode !== "simulation") return;
   if (rows.length >= MAX_ROWS) return;
 
   const id = setInterval(() => {
-    setRows((prev) =>
-      prev.length >= MAX_ROWS
-        ? prev
-        : [
-            ...prev,
-            {
-              slNo: slCounter.current++,
-              time: new Date().toLocaleTimeString(),
-              ph: +(6.5 + Math.random()).toFixed(2),
-              turbidity: +(2 + Math.random()).toFixed(2),
-              tds: +(150 + Math.random() * 15).toFixed(1),
-              source: "simulation",
-            },
-          ]
-    );
+    setRows((prev) => {
+      if (prev.length >= MAX_ROWS) return prev;
+
+      const newRow = {
+        slNo: slCounter.current++,
+        time: new Date().toLocaleTimeString(),
+        ph: +(6 + Math.random() * 2).toFixed(2),
+        turbidity: +(Math.random() * 10).toFixed(2),
+        tds: +(100 + Math.random() * 900).toFixed(1),
+        source: "simulation",
+      };
+
+      const updated = [...prev, newRow];
+
+      setSessionStatus({
+        active: true,
+        completed: false,
+        collected: updated.length,
+        phase: "COLLECTING",
+      });
+
+      return updated;
+    });
   }, INTERVAL_MS);
 
   return () => clearInterval(id);
-}, [mode, rows.length]);
+}, [mode]);
 
   /* ======================================================
      RUN PREDICTION
   ====================================================== */
   const runPrediction = async () => {
-  if (mode !== "live") {
-    alert("Prediction is only available in Live mode");
+  if (rows.length < MAX_ROWS) {
+    alert("Collect 5 readings first");
     return;
   }
 
-  try {
-    const res = await fetch(BACKEND_ANALYZE_URL, {
-      method: "POST",
-    });
-
-    const result = await res.json();
-
-    // 🔴 HANDLE BACKEND ERRORS SAFELY
-    if (!res.ok || result.error) {
-      alert(result.error || "Prediction failed");
-      return;
-    }
+  // 🔵 SIMULATION MODE (NO BACKEND)
+  if (mode === "simulation") {
+    const result = simulatePrediction(avg);
 
     setPrediction(result);
     setReadyToSave(true);
-  } catch (err) {
-    console.error("Prediction request failed", err);
-    alert("Backend unavailable. Try again.");
+
+    setSessionStatus({
+      active: true,
+      completed: false,
+      collected: MAX_ROWS,
+      phase: "ANALYZED",
+    });
+
+    return;
+  }
+
+  // 🔴 LIVE MODE (BACKEND)
+  if (mode === "live") {
+    try {
+      const res = await fetch(BACKEND_ANALYZE_URL, {
+        method: "POST",
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        alert(result.error || "Prediction failed");
+        return;
+      }
+
+      setPrediction(result);
+      setReadyToSave(true);
+    } catch (err) {
+      console.error("Prediction request failed", err);
+      alert("Backend unavailable.");
+    }
   }
 };
-
-    const avg = {
-    ph: rows.length ? rows.reduce((s, r) => s + r.ph, 0) / rows.length : 0,
-    turbidity: rows.length
-      ? rows.reduce((s, r) => s + r.turbidity, 0) / rows.length
-      : 0,
-    tds: rows.length ? rows.reduce((s, r) => s + r.tds, 0) / rows.length : 0,
-  };
 
     
 
