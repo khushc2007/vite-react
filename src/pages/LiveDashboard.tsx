@@ -476,10 +476,7 @@ useEffect(() => {
 
   return () => clearInterval(id);
 }, [mode]);
-   import { useEffect, useState, useRef } from "react";
-import MetricCard from "../components/MetricCard";
-import DatasetTable from "../components/DatasetTable";
-import ChartModal from "../components/ChartModal";
+   
 
 /* ======================================================
    BACKEND ENDPOINTS
