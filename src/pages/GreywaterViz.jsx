@@ -234,8 +234,12 @@ function buildScene(canvas, getState) {
   keyL.shadow.camera.far = 30; keyL.shadow.camera.left = -9; keyL.shadow.camera.right = 9;
   keyL.shadow.camera.top = 9; keyL.shadow.camera.bottom = -9;
   scene.add(keyL);
-  scene.add(Object.assign(new THREE.PointLight(0x88c0e8, 0.8, 25), { position: new THREE.Vector3(-6, 3, 3) }));
-  scene.add(Object.assign(new THREE.PointLight(0x00d4ff, 0.7, 22), { position: new THREE.Vector3(0, -1, -7) }));
+  const fillLight1 = new THREE.PointLight(0x88c0e8, 0.8, 25);
+  fillLight1.position.set(-6, 3, 3);
+  scene.add(fillLight1);
+  const fillLight2 = new THREE.PointLight(0x00d4ff, 0.7, 22);
+  fillLight2.position.set(0, -1, -7);
+  scene.add(fillLight2);
 
   const chamberSpot = new THREE.SpotLight(0xffffff, 2.2, 14, 0.35, 0.8);
   chamberSpot.position.set(0, 8, 1); chamberSpot.castShadow = true; chamberSpot.shadow.mapSize.set(1024, 1024);
