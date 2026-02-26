@@ -9,6 +9,7 @@ import Settings from "./pages/Settings";
 import Aquaculture from "./pages/applications/Aquaculture";
 import Agriculture from "./pages/applications/Agriculture";
 import Industrial from "./pages/applications/Industrial";
+import GreywaterViz from "./pages/GreywaterViz";
 
 export default function App() {
   return (
@@ -25,12 +26,7 @@ export default function App() {
         <Sidebar />
 
         {/* MAIN CONTENT */}
-        <main
-          style={{
-            flex: 1,
-            overflowY: "auto",
-          }}
-        >
+        <main style={{ flex: 1, overflowY: "auto" }}>
           <Routes>
             {/* DEFAULT */}
             <Route path="/" element={<Navigate to="/home" replace />} />
@@ -39,25 +35,19 @@ export default function App() {
             <Route path="/home" element={<Home />} />
 
             {/* CORE */}
-            <Route path="/live" element={<LiveDashboard />} />
-            <Route path="/history" element={<History />} />
+            <Route path="/live"     element={<LiveDashboard />} />
+            <Route path="/history"  element={<History />} />
             <Route path="/settings" element={<Settings />} />
 
-            {/* APPLICATIONS */}
-            <Route
-              path="/applications/aquaculture"
-              element={<Aquaculture />}
-            />
-            <Route
-              path="/applications/agriculture"
-              element={<Agriculture />}
-            />
-            <Route
-              path="/applications/industrial"
-              element={<Industrial />}
-            />
+            {/* VISUALIZATION */}
+            <Route path="/chamber" element={<GreywaterViz />} />
 
-            {/* SAFETY FALLBACK */}
+            {/* APPLICATIONS */}
+            <Route path="/applications/aquaculture" element={<Aquaculture />} />
+            <Route path="/applications/agriculture"  element={<Agriculture />} />
+            <Route path="/applications/industrial"   element={<Industrial />} />
+
+            {/* FALLBACK */}
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>
         </main>
