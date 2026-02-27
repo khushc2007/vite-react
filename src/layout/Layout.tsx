@@ -1,11 +1,29 @@
 import { Outlet } from "react-router-dom";
-import BottomNavigation from "../components/BottomNavigation";
+import BottomNavigation from "./components/BottomNavigation";
 
 export default function Layout() {
   return (
-    <div style={{ minHeight: "100vh", paddingBottom: "80px" }}>
-      <Outlet />
+    <div style={styles.root}>
+      <main style={styles.main}>
+        <Outlet />
+      </main>
       <BottomNavigation />
     </div>
   );
 }
+
+const styles: Record<string, React.CSSProperties> = {
+  root: {
+    display: "flex",
+    flexDirection: "column",
+    minHeight: "100vh",
+    background: "#020617",
+    color: "#ecfdf5",
+  },
+  main: {
+    flex: 1,
+    overflowY: "auto",
+    // 72px matches BottomNavigation height — prevents content hiding behind nav
+    paddingBottom: 72,
+  },
+};
