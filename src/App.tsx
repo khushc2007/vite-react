@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Sidebar from "./components/Sidebar";
+import Layout from "./Layout";
 
 /* PAGES */
 import Home from "./pages/Home";
@@ -14,44 +14,34 @@ import GreywaterViz from "./pages/GreywaterViz";
 export default function App() {
   return (
     <BrowserRouter>
-      <div
-        style={{
-          display: "flex",
-          height: "100vh",
-          background: "#020617",
-          color: "#ecfdf5",
-        }}
-      >
-        {/* SIDEBAR */}
-        <Sidebar />
+      <Routes>
+        {/* Layout wraps every route — BottomNavigation lives inside Layout */}
+        <Route element={<Layout />}>
 
-        {/* MAIN CONTENT */}
-        <main style={{ flex: 1, overflowY: "auto" }}>
-          <Routes>
-            {/* DEFAULT */}
-            <Route path="/" element={<Navigate to="/home" replace />} />
+          {/* DEFAULT */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
 
-            {/* HOME */}
-            <Route path="/home" element={<Home />} />
+          {/* HOME */}
+          <Route path="/home" element={<Home />} />
 
-            {/* CORE */}
-            <Route path="/live"     element={<LiveDashboard />} />
-            <Route path="/history"  element={<History />} />
-            <Route path="/settings" element={<Settings />} />
+          {/* CORE */}
+          <Route path="/live"     element={<LiveDashboard />} />
+          <Route path="/history"  element={<History />} />
+          <Route path="/settings" element={<Settings />} />
 
-            {/* VISUALIZATION */}
-            <Route path="/chamber" element={<GreywaterViz />} />
+          {/* VISUALIZATION */}
+          <Route path="/chamber" element={<GreywaterViz />} />
 
-            {/* APPLICATIONS */}
-            <Route path="/applications/aquaculture" element={<Aquaculture />} />
-            <Route path="/applications/agriculture"  element={<Agriculture />} />
-            <Route path="/applications/industrial"   element={<Industrial />} />
+          {/* APPLICATIONS */}
+          <Route path="/applications/aquaculture" element={<Aquaculture />} />
+          <Route path="/applications/agriculture"  element={<Agriculture />} />
+          <Route path="/applications/industrial"   element={<Industrial />} />
 
-            {/* FALLBACK */}
-            <Route path="*" element={<Navigate to="/home" replace />} />
-          </Routes>
-        </main>
-      </div>
+          {/* FALLBACK */}
+          <Route path="*" element={<Navigate to="/home" replace />} />
+
+        </Route>
+      </Routes>
     </BrowserRouter>
   );
 }
