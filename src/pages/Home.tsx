@@ -1,5 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import BottomNavigation from "./components/BottomNavigation";
+//
+// export default function Layout() {
+//   return (
+//     <div style={{ paddingBottom: 72 }}>
+//       <Outlet />
+//       <BottomNavigation />
+//     </div>
+//   );
+// }
 
 /* ─────────────────────────────────────────────
    TYPES
