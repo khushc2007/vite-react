@@ -2,9 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./layout/Layout";
 
 /* PAGES */
-import Home from "./pages/history/Home";
+import Home from "./pages/Home";
 import LiveDashboard from "./pages/LiveDashboard";
-import History from "./pages/History";
+import History from "./pages/history/HistoryPage";
 import Settings from "./pages/Settings";
 import Aquaculture from "./pages/applications/Aquaculture";
 import Agriculture from "./pages/applications/Agriculture";
