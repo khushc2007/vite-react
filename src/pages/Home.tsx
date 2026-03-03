@@ -1,6 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import BottomNavigation from "./components/BottomNavigation";
+import { supabase } from "../lib/supabase";
+
+const login = async () => {
+  await supabase.auth.signInWithOAuth({
+    provider: "google",
+  });
+};
+
+const logout = async () => {
+  await supabase.auth.signOut();
+};
 //
 // export default function Layout() {
 //   return (
@@ -281,6 +292,8 @@ function ToggleWidget() {
       <div style={{ fontSize: 26, fontWeight: 800, color: "#ecfdf5", textAlign: "center" }}>
         Pump 1
       </div>
+<button onClick={login}>Login with Google</button>
+<button onClick={logout}>Logout</button>
 
       {/* Toggle bar */}
       <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
