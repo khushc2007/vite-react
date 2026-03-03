@@ -26,7 +26,7 @@ import {
   normalise,
   applyFilters,
   computeGlobalStats,
-} from "./historyTypes";
+} from "./HistoryTypes";
 
 /* ── anime.js CDN loader (fires once) ── */
 function useAnimeJS(onReady: () => void) {
