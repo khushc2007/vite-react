@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./layout/Layout";
 
 /* PAGES */
-import Home from "./pages/Home";
+import Home from "./pages/history/Home";
 import LiveDashboard from "./pages/LiveDashboard";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
@@ -26,7 +26,7 @@ export default function App() {
 
           {/* CORE */}
           <Route path="/live"     element={<LiveDashboard />} />
-          <Route path="/history"  element={<History />} />
+          <Route path="/history"  element={<HistoryPage />} />
           <Route path="/settings" element={<Settings />} />
 
           {/* VISUALIZATION */}
